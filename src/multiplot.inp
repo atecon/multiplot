@@ -113,10 +113,17 @@ function void read_input_files_write_to_tmp (const strings files_input)
             # error_string = error_string ~ files_input[i] ~ errmsg(errnum)
         else
             printf "%s\n", filename
+            reset_yrange_and_xrange()
         endif
     endloop
     
     print error_string
+end function
+
+
+function void reset_yrange_and_xrange (void)
+    print "set xrange[*:*]"
+    print "set xrange[*:*]"
 end function
 
 
