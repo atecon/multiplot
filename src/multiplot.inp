@@ -1,0 +1,130 @@
+clear
+open denmark
+test = 1
+
+# use extra for splitfname
+pkg query extra --quiet 
+if $result.version < 0.6
+	pkg install extra
+endif
+
+
+###########################
+
+function string multiplot(strings fpaths "input file paths/names",
+	 string fout[null] "full output file path/name",
+	 int r[0::0] "row spec", int c[0::0] "col spec")
+
+	/* 
+	fpaths: paths to gnuplot code files
+	  	(if just a file name is given then it must be in the 
+		current workdir (?))
+
+	 fout: optional, where to write the output; can be pdf, eps, 
+		etc., or "display" (see gnuplot doc)
+	 r: how many rows in plot grid,
+	 c: how many cols in plot grid;
+		Default values 0 for both r,c means to try a square grid,
+		Leaving just one of r or c at default means to auto-adjust
+			to the other input.
+		(For example, to get side-by-side do r=1 and c=0.)
+
+	The output string contains the gnuplot plot code.
+	*/
+	
+	string term = "png"	# default, including for "display"
+	if exists(fout)
+		string ext = splitfname(fout)[3]
+		if strlen(ext)
+			term = ext=="pdf" ? "pdfcairo" : ext
+		endif
+	endif
+
+	# input checks and settings
+	N = nelem(fpaths)
+	if r && c && N > r*c	# fully manual spec
+		funcerr "Grid spec too small"
+	elif r && !c
+		c = ceil(N/r)
+	elif !r && c
+		r = ceil(N/c)
+	elif !r && !c			# fully auto 
+		r = ceil(sqrt(N))
+		c = ceil(N/r)
+	else
+		funcerr "shouldn't happen"
+	endif
+
+	# construct the joint code
+	string err, ftmp
+  	outfile --tempfile=ftmp
+
+	# Setting canvas size: difficult and terminal-dependent!
+	# We start from a "normal" aspect ratio of 16:10 
+	hor = 16 
+	vert = 10
+
+	if term == "pdfcairo"
+		fac = 3
+		printf "set term pdfcairo font ',%d' size %d,%d\n", \
+			32*fac, hor*fac*c, vert*fac*r
+		printf "set pointsize %d\n", 2 * fac 
+	 	printf "set linetype 1 linewidth %d\n", 6 * fac
+		printf "set linetype 2 linewidth %d\n", 6 * fac
+
+	else
+		fac = 25
+		printf "set term %s size %d,%d\n", term, hor*fac*c, vert*fac*r
+	endif
+
+	printf "set multiplot layout %d,%d rowsfirst\n", r,c 
+
+  	loop i = 1..N --quiet
+		catch string f = readfile(fpaths[i])
+		errnum = $error
+		if errnum
+			err = err ~ sprintf("Warning: Error reading file %d, ignoring.\n", i)
+			# err = err ~ fpaths[i] ~ errmsg(errnum)
+			
+		else
+			printf "%s\n", f
+		endif
+	endloop
+	print "unset multiplot"
+	outfile --close
+	
+	# warnings (if any)
+	if strlen(err)
+		print err
+	endif
+
+	# produce the plot if wanted
+	if exists(fout)
+		gnuplot --input="@ftmp" --output="@fout"
+	endif
+
+	return readfile(ftmp)
+end function
+	
+if test
+	/*	
+	setopt gnuplot persist --time-series --with-lines 
+	gnuplot LRM --output=tf1.gp
+	gnuplot LRY --output=tf2.gp
+	gnuplot IBO --output=tf3.gp
+	gnuplot IDE --output=tf4.gp
+	*/
+	
+	qqplot LRM --output=tf1.gp
+	qqplot LRY --output=tf2.gp
+	qqplot IBO --output=tf3.gp
+	qqplot IDE --output=tf4.gp
+	string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+		 "display", 4)
+
+    # check out saving of pdf
+	Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+		 "my.pdf", 4)
+
+	# print Gin
+endif
