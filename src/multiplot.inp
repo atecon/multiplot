@@ -1,130 +1,179 @@
-clear
-open denmark
-test = 1
-
-# use extra for splitfname
-pkg query extra --quiet 
-if $result.version < 0.6
-	pkg install extra
-endif
-
-
-###########################
-
-function string multiplot(strings fpaths "input file paths/names",
-	 string fout[null] "full output file path/name",
-	 int r[0::0] "row spec", int c[0::0] "col spec")
-
-	/* 
-	fpaths: paths to gnuplot code files
-	  	(if just a file name is given then it must be in the 
-		current workdir (?))
-
-	 fout: optional, where to write the output; can be pdf, eps, 
-		etc., or "display" (see gnuplot doc)
-	 r: how many rows in plot grid,
-	 c: how many cols in plot grid;
-		Default values 0 for both r,c means to try a square grid,
-		Leaving just one of r or c at default means to auto-adjust
-			to the other input.
-		(For example, to get side-by-side do r=1 and c=0.)
-
-	The output string contains the gnuplot plot code.
-	*/
-	
-	string term = "png"	# default, including for "display"
-	if exists(fout)
-		string ext = splitfname(fout)[3]
-		if strlen(ext)
-			term = ext=="pdf" ? "pdfcairo" : ext
-		endif
-	endif
-
-	# input checks and settings
-	N = nelem(fpaths)
-	if r && c && N > r*c	# fully manual spec
-		funcerr "Grid spec too small"
-	elif r && !c
-		c = ceil(N/r)
-	elif !r && c
-		r = ceil(N/c)
-	elif !r && !c			# fully auto 
-		r = ceil(sqrt(N))
-		c = ceil(N/r)
-	else
-		funcerr "shouldn't happen"
-	endif
-
-	# construct the joint code
-	string err, ftmp
-  	outfile --tempfile=ftmp
-
-	# Setting canvas size: difficult and terminal-dependent!
-	# We start from a "normal" aspect ratio of 16:10 
-	hor = 16 
-	vert = 10
-
-	if term == "pdfcairo"
-		fac = 3
-		printf "set term pdfcairo font ',%d' size %d,%d\n", \
-			32*fac, hor*fac*c, vert*fac*r
-		printf "set pointsize %d\n", 2 * fac 
-	 	printf "set linetype 1 linewidth %d\n", 6 * fac
-		printf "set linetype 2 linewidth %d\n", 6 * fac
-
-	else
-		fac = 25
-		printf "set term %s size %d,%d\n", term, hor*fac*c, vert*fac*r
-	endif
-
-	printf "set multiplot layout %d,%d rowsfirst\n", r,c 
-
-  	loop i = 1..N --quiet
-		catch string f = readfile(fpaths[i])
-		errnum = $error
-		if errnum
-			err = err ~ sprintf("Warning: Error reading file %d, ignoring.\n", i)
-			# err = err ~ fpaths[i] ~ errmsg(errnum)
-			
-		else
-			printf "%s\n", f
-		endif
-	endloop
-	print "unset multiplot"
-	outfile --close
-	
-	# warnings (if any)
-	if strlen(err)
-		print err
-	endif
-
-	# produce the plot if wanted
-	if exists(fout)
-		gnuplot --input="@ftmp" --output="@fout"
-	endif
-
-	return readfile(ftmp)
+function void check_version_of_extra_package (void)
+    /* Need the splitfname() function from the 'extra' package. */ 
+    
+    pkg query extra --quiet
+    if $result.version < 0.6
+        catch pkg install extra
+        if $error
+            funcerr("Failed to install the 'extra' package of minimum version 0.6")
+        endif
+    endif
 end function
-	
-if test
-	/*	
-	setopt gnuplot persist --time-series --with-lines 
-	gnuplot LRM --output=tf1.gp
-	gnuplot LRY --output=tf2.gp
-	gnuplot IBO --output=tf3.gp
-	gnuplot IDE --output=tf4.gp
-	*/
-	
-	qqplot LRM --output=tf1.gp
-	qqplot LRY --output=tf2.gp
-	qqplot IBO --output=tf3.gp
-	qqplot IDE --output=tf4.gp
-	string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
-		 "display", 4)
 
-    # check out saving of pdf
-	Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
-		 "my.pdf", 4)
 
-	# print Gin
-endif
+function void set_grid_dimension (scalar *r,
+                                       scalar *c,
+                                       const int N)
+    /* Set number of rows and columns for grid. */
+
+    if r && c && N > r*c	# fully manual spec
+        funcerr "Grid spec too small"
+    elif r && !c
+        c = ceil(N/r)
+    elif !r && c
+        r = ceil(N/c)
+    elif !r && !c			# fully auto
+        r = ceil(sqrt(N))
+        c = ceil(N/r)
+    else
+        funcerr "Shouldn't happen"		# TODO: any hint what to do?
+    endif
+end function
+
+
+function void write_terminal_and_plot_details (const string terminal,
+                                               const int r,
+                                               const int c)
+    /* Set number of rows and columns for grid. */
+
+    # Setting canvas size: difficult and terminal-dependent!
+    # We start from a "normal" aspect ratio of 16:10
+    scalar hor = 16
+    scalar vert = 10
+
+    if terminal == "pdfcairo"
+        set_canvas_pdfcairo(r, c, hor, vert)
+    else
+        set_canvas_non_pdfcairo(r, c, hor, vert, terminal)
+    endif
+    
+    printf "set multiplot layout %d,%d rowsfirst\n", r, c
+end function
+
+
+function void set_canvas_pdfcairo (const int r,
+                                   const int c,
+                                   const int hor,
+                                   const int vert)
+    /* */
+
+    scalar factor = 3
+    printf "set term pdfcairo font ',%d' size %d,%d\n", \
+      32*factor, hor*factor*c, vert*factor*r
+    printf "set pointsize %d\n", 2 * factor
+    printf "set linetype 1 linewidth %d\n", 6 * factor
+    printf "set linetype 2 linewidth %d\n", 6 * factor
+end function
+
+
+function void set_canvas_non_pdfcairo (const int r,
+                                       const int c,
+                                       const int hor,
+                                       const int vert,
+                                       const string terminal)
+    /* */
+
+    scalar factor = 25
+    printf "set term %s size %d,%d\n", terminal,\
+      hor*factor*c, vert*factor*r
+end function
+
+
+function string compile_and_write_joint_code (const string terminal,
+                                const strings files_input,
+                                const int r,
+                                const int c)
+    /* Open temporary file, write gnuplot stuff and clode file. */
+
+    string file_tmp
+    outfile --tempfile=file_tmp
+        write_terminal_and_plot_details(terminal, r, c)
+        read_input_files_write_to_tmp(files_input)
+
+        print "unset multiplot"
+    end outfile
+    
+    return file_tmp
+end function
+
+
+function void read_input_files_write_to_tmp (const strings files_input)
+/* Read in gp-files of separate plots, and write content
+    to common gnuplot file. */
+
+    scalar N = nelem(files_input)
+    string error_string = ""
+
+    loop i = 1..N --quiet
+        catch string filename = readfile(files_input[i])
+        errnum = $error
+        if errnum
+            error_string = error_string ~ \
+              sprintf("Warning: Error reading file %d, ignoring.\n", i)
+            # error_string = error_string ~ files_input[i] ~ errmsg(errnum)
+        else
+            printf "%s\n", filename
+        endif
+    endloop
+    
+    print error_string
+end function
+
+
+function string set_terminal (string terminal,
+                              const string file_type,
+                              const string file_output[null])
+    /* Set the gnuplot terminal. */
+
+    if exists(file_output) && strlen(file_type)
+        string terminal = file_type == "pdf" ? "pdfcairo" : file_type
+    endif
+
+    return terminal
+end function
+
+
+function string multiplot (const strings files_input "input file paths/names",
+                           const string file_output[null] "full output file path/name",
+                           const int r[0::0] "number of rows in plot grid",
+                           const int c[0::0] "number of cols in plot grid")
+
+    /*
+       files_input: paths to gnuplot code files
+       (if just a file name is given then it must be in the
+       current workdir (?))
+
+       file_output: optional, where to write the output; can be pdf, eps,
+       etc., or "display" (see gnuplot doc)
+
+       Default values 0 for both r,c means to try a square grid,
+       Leaving just one of r or c at default means to auto-adjust
+       to the other input.
+       (For example, to get side-by-side do r=1 and c=0.)
+
+       The output string contains the gnuplot plot code.
+    */
+
+    check_version_of_extra_package()
+
+    # Initializations
+    string terminal = "png"				# default, including for "display"
+    string file_type = splitfname(file_output)[3]
+    scalar N = nelem(files_input)
+    string error
+    
+    string terminal = set_terminal(terminal, file_type, file_output)
+    set_grid_dimension(&r, &c, N)
+    string file_tmp = compile_and_write_joint_code(terminal, files_input, r, c)
+    
+    if exists(file_output)
+        gnuplot --input="@file_tmp" --output="@file_output"
+    endif
+
+    return readfile(file_tmp)
+end function
+
+
+
+
+

@@ -1,0 +1,34 @@
+clear
+set verbose off
+open denmark -q
+
+set workdir "/home/at/git/multiplot"			# adapt to yours
+
+include "./src/multiplot.inp" --force
+
+
+scalar TIMESERIES_PLOT = 1					# 0=qqplot, 1=time-series plot
+
+if TIMESERIES_PLOT
+    setopt gnuplot persist --time-series --with-lines
+    gnuplot LRM --output=tf1.gp
+    gnuplot LRY --output=tf2.gp
+    gnuplot IBO --output=tf3.gp
+    gnuplot IDE --output=tf4.gp
+else
+    qqplot LRM --output=tf1.gp
+    qqplot LRY --output=tf2.gp
+    qqplot IBO --output=tf3.gp
+    qqplot IDE --output=tf4.gp
+endif
+
+string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+  "display", 4)
+print Gin
+
+# check out saving of pdf
+Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+  "my.pdf", 4)
+#print Gin
+
+
