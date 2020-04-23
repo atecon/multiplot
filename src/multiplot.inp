@@ -92,7 +92,7 @@ function string compile_and_write_joint_code (const string terminal,
 
         print "unset multiplot"
     end outfile
-    
+
     return file_tmp
 end function
 
@@ -105,15 +105,18 @@ function void read_input_files_write_to_tmp (const strings files_input)
     string error_string = ""
 
     loop i = 1..N --quiet
-        catch string filename = readfile(files_input[i])
+        string file_content = readfile(files_input[i])
+        
         errnum = $error
         if errnum
             error_string = error_string ~ \
               sprintf("Warning: Error reading file %d, ignoring.\n", i)
             # error_string = error_string ~ files_input[i] ~ errmsg(errnum)
         else
-            printf "%s\n", filename
-            reset_yrange_and_xrange()
+            printf "%s\n", file_content
+            if $i < N
+                reset_yrange_and_xrange()
+            endif
         endif
     endloop
     
@@ -122,7 +125,7 @@ end function
 
 
 function void reset_yrange_and_xrange (void)
-    print "set xrange[*:*]"
+    print "set yrange[*:*]"
     print "set xrange[*:*]"
 end function
 
@@ -142,8 +145,8 @@ end function
 
 function string multiplot (const strings files_input "input file paths/names",
                            const string file_output[null] "full output file path/name",
-                           const int r[0::0] "number of rows in plot grid",
-                           const int c[0::0] "number of cols in plot grid")
+                           int r[0::0] "number of rows in plot grid",
+                           int c[0::0] "number of cols in plot grid")		# TODO: why can you have '0' r or c?
 
     /*
        files_input: paths to gnuplot code files
@@ -165,7 +168,7 @@ function string multiplot (const strings files_input "input file paths/names",
 
     # Initializations
     string terminal = "png"				# default, including for "display"
-    string file_type = splitfname(file_output)[3]
+    string file_type = splitfname(file_output)[3]				# FIXME: dependency to 'extra' v0.6
     scalar N = nelem(files_input)
     string error
     
