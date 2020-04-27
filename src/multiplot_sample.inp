@@ -5,6 +5,7 @@ open denmark -q
 set workdir "/home/at/git/multiplot"			# adapt to yours
 
 include "./src/multiplot.inp" --force
+include extra.gfn
 
 
 scalar CASE = 4					# 0=qqplot, 1=time-series plot

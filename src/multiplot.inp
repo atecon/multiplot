@@ -116,11 +116,18 @@ function void read_input_files_write_to_tmp (const strings files_input)
             printf "%s\n", file_content
             if $i < N
                 reset_yrange_and_xrange()
+                reset_title_and_labels()
             endif
         endif
     endloop
     
     print error_string
+end function
+
+function void reset_title_and_labels (void)
+    print "set title ''"
+    print "set ylabel ''"
+    print "set xlabel ''"
 end function
 
 
