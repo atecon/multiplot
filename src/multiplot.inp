@@ -117,6 +117,7 @@ function void read_input_files_write_to_tmp (const strings files_input)
             if $i < N
                 reset_yrange_and_xrange()
                 reset_title_and_labels()
+                # FIXME: we need to reset _everything_ (borders etc.) -- any 'reset' applicable?
             endif
         endif
     endloop
