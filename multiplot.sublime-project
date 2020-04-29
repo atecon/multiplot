@@ -5,18 +5,4 @@
 			"path": "."
 		}
 	],
-	"settings":
-	{
-		"LSP":
-		{
-			"clangd":
-			{
-				"enabled": true
-			},
-			"cquery":
-			{
-				"enabled": true
-			}
-		}
-	}
 }
