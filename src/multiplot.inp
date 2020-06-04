@@ -11,20 +11,20 @@ function void check_version_of_extra_package (void)
 end function
 
 
-function void set_grid_dimension (scalar *r,
-                                       scalar *c,
-                                       const int N)
+function void set_grid_dimension (scalar *n_rows,
+                                  scalar *n_cols,
+                                  const int N)
     /* Set number of rows and columns for grid. */
 
-    if r && c && N > r*c	# fully manual spec
+    if n_rows && n_cols && N > (n_rows * n_cols)	# fully manual spec
         funcerr "Grid spec too small"
-    elif r && !c
-        c = ceil(N/r)
-    elif !r && c
-        r = ceil(N/c)
-    elif !r && !c			# fully auto
-        r = ceil(sqrt(N))
-        c = ceil(N/r)
+    elif n_rows && !n_cols
+        n_cols = ceil(N / n_rows)
+    elif !n_rows && n_cols
+        n_rows = ceil(N / n_cols)
+    elif !n_rows && !n_cols			# fully auto
+        n_rows = ceil(sqrt(N))
+        n_cols = ceil(N / n_rows)
     else
         funcerr "Shouldn't happen"		# TODO: any hint what to do?
     endif
@@ -32,62 +32,62 @@ end function
 
 
 function void write_terminal_and_plot_details (const string terminal,
-                                               const int r,
-                                               const int c)
+                                               const int n_rows,
+                                               const int n_cols)
     /* Set number of rows and columns for grid. */
 
     # Setting canvas size: difficult and terminal-dependent!
     # We start from a "normal" aspect ratio of 16:10
-    scalar hor = 16
-    scalar vert = 10
+    scalar dim_horizontal = 16
+    scalar dim_vertical = 10
 
     if terminal == "pdfcairo"
-        set_canvas_pdfcairo(r, c, hor, vert)
+        set_canvas_pdfcairo(n_rows, n_cols, dim_horizontal, dim_vertical)
     else
-        set_canvas_non_pdfcairo(r, c, hor, vert, terminal)
+        set_canvas_non_pdfcairo(n_rows, n_cols, dim_horizontal, dim_vertical, terminal)
     endif
 
-    printf "set multiplot layout %d,%d rowsfirst\n", r, c
+    printf "set multiplot layout %d,%d rowsfirst\n", n_rows, n_cols
 end function
 
 
-function void set_canvas_pdfcairo (const int r,
-                                   const int c,
-                                   const int hor,
-                                   const int vert)
+function void set_canvas_pdfcairo (const int n_rows,
+                                   const int n_cols,
+                                   const int dim_horizontal,
+                                   const int dim_vertical)
     /* */
 
     scalar factor = 3
-    printf "set term pdfcairo font ',%d' size %d,%d\n", \
-      32*factor, hor*factor*c, vert*factor*r
+    printf "set term pdfcairo font ',%d' size %d,%d\n",\
+      (32 * factor), (dim_horizontal * factor * n_cols), (dim_vertical * factor * n_rows)
     printf "set pointsize %d\n", 2 * factor
     printf "set linetype 1 linewidth %d\n", 6 * factor
     printf "set linetype 2 linewidth %d\n", 6 * factor
 end function
 
 
-function void set_canvas_non_pdfcairo (const int r,
-                                       const int c,
-                                       const int hor,
-                                       const int vert,
+function void set_canvas_non_pdfcairo (const int n_rows,
+                                       const int n_cols,
+                                       const int dim_horizontal,
+                                       const int dim_vertical,
                                        const string terminal)
     /* */
 
     scalar factor = 25
     printf "set term %s size %d,%d\n", terminal,\
-      hor*factor*c, vert*factor*r
+      (dim_horizontal * factor * n_cols), (dim_vertical * factor * n_rows)
 end function
 
 
 function string compile_and_write_joint_code (const string terminal,
                                 const strings files_input,
-                                const int r,
-                                const int c)
+                                const int n_rows,
+                                const int n_cols)
     /* Open temporary file, write gnuplot stuff and clode file. */
 
     string file_tmp
     outfile --tempfile=file_tmp
-        write_terminal_and_plot_details(terminal, r, c)
+        write_terminal_and_plot_details(terminal, n_rows, n_cols)
         read_input_files_write_to_tmp(files_input)
 
         print "unset multiplot"
@@ -115,9 +115,7 @@ function void read_input_files_write_to_tmp (const strings files_input)
         else
             printf "%s\n", file_content
             if $i < N
-                reset_yrange_and_xrange()
-                reset_title_and_labels()
-                # FIXME: we need to reset _everything_ (borders etc.) -- any 'reset' applicable?
+                printf "reset\n"  # reset to daulf values after each plot
             endif
         endif
     endloop
@@ -125,24 +123,12 @@ function void read_input_files_write_to_tmp (const strings files_input)
     print error_string
 end function
 
-function void reset_title_and_labels (void)
-    print "set title ''"
-    print "set ylabel ''"
-    print "set xlabel ''"
-end function
-
-
-function void reset_yrange_and_xrange (void)
-    print "set yrange[*:*]"
-    print "set xrange[*:*]"
-end function
-
 
 function string set_terminal (const string file_type)
     /* Set the gnuplot terminal. */
 
     if file_type == "png"
-        string terminal = "pngcairo"
+        string terminal = "png"
     elif file_type == "pdf"
         string terminal = "pdfcairo"
     elif file_type == "eps"
@@ -157,8 +143,8 @@ end function
 
 function string multiplot (const strings files_input "Input file paths/names",
                            const string file_output[null] "Full output file path/name",
-                           int r[0::0] "Number of rows in plot grid",
-                           int c[0::0] "Number of cols in plot grid")		# TODO: why can you have '0' r or c?
+                           int n_rows[0::0] "Number of rows in plot grid",
+                           int n_cols[0::0] "Number of cols in plot grid")		# TODO: why can you have '0' r or c?
 
     /*
        files_input: paths to gnuplot code files
@@ -175,7 +161,7 @@ function string multiplot (const strings files_input "Input file paths/names",
     check_version_of_extra_package()
 
     # Initializations
-    if !exists(file_output) || !strlen(file_output)
+    if !exists(file_output) || (exists(file_output) && !strlen(file_output))
       string file_output = "display"
       string file_type = "png"
     else
@@ -185,12 +171,14 @@ function string multiplot (const strings files_input "Input file paths/names",
     string error = ""
 
     string terminal = set_terminal(file_type)
-    set_grid_dimension(&r, &c, N)
-    string file_tmp = compile_and_write_joint_code(terminal, files_input, r, c)
+    set_grid_dimension(&n_rows, &n_cols, N)
+    string file_tmp = compile_and_write_joint_code(terminal, files_input, n_rows, n_cols)
 
-    if exists(file_output)
-        gnuplot --input="@file_tmp" --output="@file_output"
-    endif
+    eval file_output
+    eval file_tmp
+    #stop
+
+    gnuplot --input="@file_tmp" --output="@file_output"
 
     return readfile(file_tmp)
 end function
