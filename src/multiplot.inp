@@ -132,7 +132,7 @@ function string set_terminal (const string file_type)
     elif file_type == "pdf"
         string terminal = "pdfcairo"
     elif file_type == "eps"
-        string terminal = "postscript eps enhancded"
+        string terminal = "postscript eps enhanced"
     elif file_type == "svg"
         string terminal = "svg"
     endif
@@ -173,10 +173,6 @@ function string multiplot (const strings files_input "Input file paths/names",
     string terminal = set_terminal(file_type)
     set_grid_dimension(&n_rows, &n_cols, N)
     string file_tmp = compile_and_write_joint_code(terminal, files_input, n_rows, n_cols)
-
-    eval file_output
-    eval file_tmp
-    #stop
 
     gnuplot --input="@file_tmp" --output="@file_output"
 

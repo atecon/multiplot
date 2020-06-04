@@ -37,17 +37,27 @@ elif CASE == 4						# qqplot FAILS
     qqplot IDE --output=tf4.gp
 endif
 
-#string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),, 4)
-#stop
 
 string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "foo.png", 2)
-print Gin
-stop
+#print Gin
+#stop
 
+Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+  "my.svg", 2)
+
+
+# FIXME: 'display' does not work yet
+#string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),, 4)
+
+# FIXME: PDF is not as expected
 # check out saving of pdf
 Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
-  "my.pdf", 4)
+  "my.pdf", 2)
 #print Gin
+
+# FIXME: EPS does not work properly
+Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+  "my.eps", 2)
 
 
