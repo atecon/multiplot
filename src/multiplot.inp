@@ -1,6 +1,6 @@
 function void check_version_of_extra_package (void)
-    /* Need the splitfname() function from the 'extra' package. */ 
-    
+    /* Need the splitfname() function from the 'extra' package. */
+
     pkg query extra --quiet
     if $result.version < 0.6
         catch pkg install extra
@@ -46,7 +46,7 @@ function void write_terminal_and_plot_details (const string terminal,
     else
         set_canvas_non_pdfcairo(r, c, hor, vert, terminal)
     endif
-    
+
     printf "set multiplot layout %d,%d rowsfirst\n", r, c
 end function
 
@@ -106,7 +106,7 @@ function void read_input_files_write_to_tmp (const strings files_input)
 
     loop i = 1..N --quiet
         string file_content = readfile(files_input[i])
-        
+
         errnum = $error
         if errnum
             error_string = error_string ~ \
@@ -121,7 +121,7 @@ function void read_input_files_write_to_tmp (const strings files_input)
             endif
         endif
     endloop
-    
+
     print error_string
 end function
 
@@ -138,36 +138,36 @@ function void reset_yrange_and_xrange (void)
 end function
 
 
-function string set_terminal (string terminal,
-                              const string file_type,
-                              const string file_output[null])
+function string set_terminal (const string file_type)
     /* Set the gnuplot terminal. */
 
-    if exists(file_output) && strlen(file_type)
-        string terminal = file_type == "pdf" ? "pdfcairo" : file_type
+    if file_type == "png"
+        string terminal = "pngcairo"
+    elif file_type == "pdf"
+        string terminal = "pdfcairo"
+    elif file_type == "eps"
+        string terminal = "postscript eps enhancded"
+    elif file_type == "svg"
+        string terminal = "svg"
     endif
 
     return terminal
 end function
 
 
-function string multiplot (const strings files_input "input file paths/names",
-                           const string file_output[null] "full output file path/name",
-                           int r[0::0] "number of rows in plot grid",
-                           int c[0::0] "number of cols in plot grid")		# TODO: why can you have '0' r or c?
+function string multiplot (const strings files_input "Input file paths/names",
+                           const string file_output[null] "Full output file path/name",
+                           int r[0::0] "Number of rows in plot grid",
+                           int c[0::0] "Number of cols in plot grid")		# TODO: why can you have '0' r or c?
 
     /*
        files_input: paths to gnuplot code files
        (if just a file name is given then it must be in the
-       current workdir (?))
+       current workdir)
 
-       file_output: optional, where to write the output; can be pdf, eps,
-       etc., or "display" (see gnuplot doc)
+       file_output: optional, where to write the compiled output plot; can be pdf, eps, etc., or "display" (see gnuplot doc)
 
-       Default values 0 for both r,c means to try a square grid,
-       Leaving just one of r or c at default means to auto-adjust
-       to the other input.
-       (For example, to get side-by-side do r=1 and c=0.)
+       Default values 0 for both r and c means to try a square grid.       Leaving just one of r or c at default means to auto-adjust to the other input. (For example, to get side-by-side do r=1 and c=0.)
 
        The output string contains the gnuplot plot code.
     */
@@ -175,15 +175,19 @@ function string multiplot (const strings files_input "input file paths/names",
     check_version_of_extra_package()
 
     # Initializations
-    string terminal = "png"				# default, including for "display"
-    string file_type = splitfname(file_output)[3]				# FIXME: dependency to 'extra' v0.6
+    if !exists(file_output) || !strlen(file_output)
+      string file_output = "display"
+      string file_type = "png"
+    else
+      string file_type = splitfname(file_output)[3]				# FIXME: dependency to 'extra' v0.6
+    endif
     scalar N = nelem(files_input)
-    string error
-    
-    string terminal = set_terminal(terminal, file_type, file_output)
+    string error = ""
+
+    string terminal = set_terminal(file_type)
     set_grid_dimension(&r, &c, N)
     string file_tmp = compile_and_write_joint_code(terminal, files_input, r, c)
-    
+
     if exists(file_output)
         gnuplot --input="@file_tmp" --output="@file_output"
     endif
