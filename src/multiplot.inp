@@ -15,9 +15,8 @@ function void set_grid_dimension (scalar *n_rows,
                                   scalar *n_cols,
                                   const int N)
     /* Set number of rows and columns for grid. */
-
     if n_rows && n_cols && N > (n_rows * n_cols)	# fully manual spec
-        funcerr "Grid spec too small"
+        funcerr(sprintf("The specified grid (%d by %d) is insufficient for the number of\nsub-plots to plot (%d).", n_rows, n_cols, N))
     elif n_rows && !n_cols
         n_cols = ceil(N / n_rows)
     elif !n_rows && n_cols
@@ -26,7 +25,7 @@ function void set_grid_dimension (scalar *n_rows,
         n_rows = ceil(sqrt(N))
         n_cols = ceil(N / n_rows)
     else
-        funcerr "Shouldn't happen"		# TODO: any hint what to do?
+        funcerr(sprintf("The specified grid (%d by %d) exceeds the number of\nsub-plots to plot (%d).", n_rows, n_cols, N))
     endif
 end function
 
@@ -132,7 +131,7 @@ function string set_terminal (const string file_type)
     elif file_type == "pdf"
         string terminal = "pdfcairo"
     elif file_type == "eps"
-        string terminal = "postscript eps enhanced"
+        string terminal = "postscript eps"
     elif file_type == "svg"
         string terminal = "svg"
     endif
@@ -167,11 +166,10 @@ function string multiplot (const strings files_input "Input file paths/names",
     else
       string file_type = splitfname(file_output)[3]				# FIXME: dependency to 'extra' v0.6
     endif
-    scalar N = nelem(files_input)
     string error = ""
 
     string terminal = set_terminal(file_type)
-    set_grid_dimension(&n_rows, &n_cols, N)
+    set_grid_dimension(&n_rows, &n_cols, nelem(files_input))
     string file_tmp = compile_and_write_joint_code(terminal, files_input, n_rows, n_cols)
 
     gnuplot --input="@file_tmp" --output="@file_output"
