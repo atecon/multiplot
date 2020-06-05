@@ -1,0 +1,7 @@
+set verbose off
+clear
+
+include "./src/multiplot.inp" --force
+include assertion.gfn
+
+printf "\nNo tests implemented yet.\n"
