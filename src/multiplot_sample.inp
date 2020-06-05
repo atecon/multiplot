@@ -2,16 +2,13 @@ clear
 set verbose off
 open denmark -q
 
-#gnuplot LRM --time-series --with-lines --output=display
-#stop
-
 set workdir "/home/at/git/multiplot"			# adapt to yours
 
 include "./src/multiplot.inp" --force
 include extra.gfn
 
 
-scalar CASE = 1					# 0=qqplot, 1=time-series plot
+scalar CASE = 4					# 0=qqplot, 1=time-series plot
 
 if CASE == 1
     setopt gnuplot persist --time-series --with-lines
@@ -28,11 +25,12 @@ elif CASE == 2
 elif CASE == 3
     qqplot LRM --output=tf1.gp
     qqplot LRY --output=tf2.gp
-    gnuplot IBO --output=tf3.gp --time-series --with-lines
+    gnuplot IBO --output=tf3.gp --time-series --with-lines { set title "foo" ; set grid ; }
     gnuplot IDE --output=tf4.gp --time-series --with-lines
 elif CASE == 4						# qqplot FAILS
-    gnuplot IBO --output=tf1.gp --time-series --with-lines
-    gnuplot IDE --output=tf2.gp --time-series --with-lines
+    gnuplot IBO --output=tf1.gp --time-series --with-lines { set title "foo" ; set yrange[-10:10]; \
+        set ylabel "ylabel"; }
+    gnuplot IDE --output=tf2.gp --time-series --with-lines { set title "foo" ; set xlabel "xlabel"; }
     qqplot IBO --output=tf3.gp
     qqplot IDE --output=tf4.gp
 endif
@@ -41,17 +39,10 @@ endif
 string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "foo.png", 2)
 #print Gin
-#stop
 
 Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "my.svg", 2)
 
-
-# FIXME: 'display' does not work yet
-#string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),, 4)
-
-# FIXME: PDF is not as expected
-# check out saving of pdf
 Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "my.pdf", 2)
 #print Gin
