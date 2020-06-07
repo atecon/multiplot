@@ -1,4 +1,4 @@
-This package compiles a single multiplot graph comprising multiple sub plots.
+This package compiles a multiplot graph comprising multiple sub plots.
 
 Please ask questions and report bugs on the gretl mailing list if possible. Alternatively, open an issue ticket on my github repo.
 Source code and test script(s) can be found here:
@@ -7,26 +7,26 @@ https://github.com/atecon/multiplot
 
 PUBLIC FUNCTION:
 -----------------------------------------------------------------------
-Function:       multiplot()
+Function:       multiplot(const strings files_input, const string file_output,
+                int n_rows, int n_cols, bundle options)
 Arguments:      strings, Array of filenames each referring to a gnuplot file
-                string, Full output file path for storing compiled plot (optional)
+                string, Full output file path for storing compiled plot
+                (optional)
                 int, Number of rows of the multiplot grid; if zero determined by the number of columns chosen.
                 int, Number of columns of the multiplot grid; if zero determined by the number of rows chosen.
                 bundle, Parameters for fine-tuning the plot (optional)
 
 Return:
-String variable including the gnuplot multiplot command.
+String variable including the gnuplot command.
 -----------------------------------------------------------------------
 
 
 Note on optional parameters
 ---------------------------
-The user can pass a optional bundle as the fifth argument for fine-tuning the multiplot. The following parameters are currently supported and their default values are:
+The user can pass an optional bundle as the fifth argument for fine-tuning the multiplot. The following parameters are currently supported and their default values are:
 
 PLOT_WIDTH: default: 800 (pixels)
-ASPECT_RATIO_VERTICAL: 600 (pixels)
-POINT_SIZE: 1
-LINE_WIDTH: 1
+PLOT_HEIGHT: 600 (pixels)
 FONT_SIZE = 12
 
 

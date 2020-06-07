@@ -2,18 +2,18 @@ clear
 set verbose off
 open denmark -q
 
-set workdir "/home/at/git/multiplot"			# adapt to yours
+include multiplot.gfn
 
-include "./src/multiplot.inp" --force
-include extra.gfn
+# Select an example case
+scalar CASE = 4
+# Fine tune the graph if wished
+bundle options = defbundle("FONT_SIZE", 10, "PLOT_HEIGHT", 700)
 
-
-scalar CASE = 4					# 0=qqplot, 1=time-series plot
 
 if CASE == 1
     setopt gnuplot persist --time-series --with-lines
     gnuplot LRM --output=tf1.gp { set title "foo" ; set yrange[10:12]; \
-        set ylabel "ylabel"; }
+        set ylabel "ylabel"; set linetype 1 lw 2 pt 6 lc rgb "blue" ; }
     gnuplot LRY --output=tf2.gp { set title "foo" ; set xlabel "xlabel"; }
     gnuplot IBO --output=tf3.gp { set title "foo" ; set grid ; }
     gnuplot IDE --output=tf4.gp
@@ -32,31 +32,23 @@ elif CASE == 4						# qqplot FAILS
         set ylabel "ylabel"; }
     gnuplot IDE --output=tf2.gp --time-series --with-lines { set title "foo" ; set xlabel "xlabel"; }
     qqplot IBO --output=tf3.gp
-    qqplot IDE --output=tf4.gp
+    freq IDE --plot=tf4.gp
 endif
 
-
-bundle options = defbundle("POINT_SIZE", 1)
-
-Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
-  "my.pdf", , , options)
-Gin
-stop
-
-
+# Automatic grid determination + pdf output
 string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
-  "foo.png", , , options)
-print Gin
+  "my.pdf", , , options)
+# print Gin               # uncomment for printing gnuplot command
 
+# Multiplot with 1 row + svg output
+string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+  "my.svg", 1, , options)
+
+# Multiplot with 4 rows + png output
+string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+  "foo.png", 4, , options)
+
+
+# FIXME: Does not work yet!
 Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
-  "my.svg", 2)
-
-Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
-  "my.pdf", 2)
-#print Gin
-
-# FIXME: EPS does not work properly
-Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
-  "my.eps", 2)
-
-
+  "my.eps", , , options)

@@ -4,9 +4,7 @@ function void check_version_of_extra_package (void)
     pkg query extra --quiet
     if $result.version < 0.6
         catch pkg install extra
-        if $error
-            funcerr("Failed to install the 'extra' package of minimum version 0.6")
-        endif
+        errorif($error > 0, "Failed to install the 'extra' package of minimum version 0.6")
     endif
 end function
 
@@ -15,6 +13,7 @@ function void set_grid_dimension (scalar *n_rows,
                                   scalar *n_cols,
                                   const int N)
     /* Set number of rows and columns for grid. */
+
     if n_rows && n_cols && N > (n_rows * n_cols)	# fully manual spec
         funcerr(sprintf("The specified grid (%d by %d) is insufficient for the number of\nsub-plots to plot (%d).", n_rows, n_cols, N))
     elif n_rows && !n_cols
@@ -31,79 +30,48 @@ end function
 
 
 function bundle get_default_parameters (void)
-  /* Set default plotting parameters here. */
+    /* Set default plotting parameters here. */
 
-  bundle P = defbundle(\
-    "PLOT_WIDTH", 800,\
-    "PLOT_HEIGHT", 600,\
-    "POINT_SIZE", 1,\
-    "LINE_WIDTH", 1,\
-    "FONT_SIZE", 12)
-
-  return P
+    return defbundle(\
+      "PLOT_WIDTH", 800,\
+      "PLOT_HEIGHT", 600,\
+      "FONT_SIZE", 12)
 end function
 
 
-function void write_terminal_and_plot_details (const string terminal,
-                                               const int n_rows,
-                                               const int n_cols,
-                                               const bundle options)
-    /* Set number of rows and columns for grid. */
+function void write_terminal_and_mplot_dims (const string terminal,
+                                             const int n_rows,
+                                             const int n_cols,
+                                             const bundle options)
+    /* Set canvas and multiplot dimensions for grid. */
 
-    if terminal == "pdfcairo"
-        set_canvas_pdfcairo(n_rows, n_cols, options)
-    else
-        set_canvas_non_pdfcairo(n_rows, n_cols, dim_horizontal, dim_vertical, terminal)
-    endif
-
+    set_canvas(terminal, options)
     printf "set multiplot layout %d,%d rowsfirst\n", n_rows, n_cols
 end function
 
 
+function void set_canvas (const string terminal,
+                          const bundle options)
+    /* Actual writing of the terminal command: Set size of canvas and font size.*/
 
+    scalar factor = 1
+    factor = (terminal == "pdfcairo" || terminal == "eps") ? 100 : factor
 
-function void set_canvas_pdfcairo (const int n_rows,
-                                   const int n_cols,
-                                   const bundle options)
-    /* */
-
-    scalar PLOT_HEIGHT = options.PLOT_HEIGHT / 100
-    scalar PLOT_WIDTH = options.PLOT_WIDTH / 100
-
-    printf "set term pdfcairo font ',%d' size %d,%d\n",\
-      options.FONT_SIZE, PLOT_WIDTH, PLOT_HEIGHT
-    printf "set pointsize %d\n", options.POINT_SIZE
-    loop i=1..6
-      printf "set linetype %d linewidth %d\n", $i, options.LINE_WIDTH
-    endloop
-end function
-
-
-function void set_canvas_non_pdfcairo (const int n_rows,
-                                       const int n_cols,
-                                       const int dim_horizontal,
-                                       const int dim_vertical,
-                                       const string terminal)
-    /* */
-
-    scalar factor = 25
-    printf "set term %s size %d,%d\n", terminal,\
-      (dim_horizontal * factor * n_cols), (dim_vertical * factor * n_rows)
+    printf "set term %s font ',%d' size %d,%d\n", terminal, options.FONT_SIZE, options.PLOT_WIDTH / factor, options.PLOT_HEIGHT / factor
 end function
 
 
 function string compile_and_write_joint_code (const string terminal,
-                                const strings files_input,
-                                const int n_rows,
-                                const int n_cols,
-                                const bundle options)
+                                              const strings files_input,
+                                              const int n_rows,
+                                              const int n_cols,
+                                              const bundle options)
     /* Open temporary file, write gnuplot stuff and clode file. */
 
     string file_tmp
     outfile --tempfile=file_tmp
-        write_terminal_and_plot_details(terminal, n_rows, n_cols, options)
+        write_terminal_and_mplot_dims(terminal, n_rows, n_cols, options)
         read_input_files_write_to_tmp(files_input)
-
         print "unset multiplot"
     end outfile
 
@@ -118,28 +86,24 @@ function void read_input_files_write_to_tmp (const strings files_input)
     scalar N = nelem(files_input)
     string error_string = ""
 
-    loop i = 1..N --quiet
-        string file_content = readfile(files_input[i])
-
-        errnum = $error
-        if errnum
-            error_string = error_string ~ \
-              sprintf("Warning: Error reading file %d, ignoring.\n", i)
-            # error_string = error_string ~ files_input[i] ~ errmsg(errnum)
+    loop i=1..N --quiet
+        catch string file_content = readfile(files_input[i])
+        if $error
+            error_string ~= sprintf("Warning: Error reading file %s. Ignored.\n", files_input[i])
         else
             printf "%s\n", file_content
-            if $i < N
-                printf "reset\n"  # reset to daulf values after each plot
-            endif
+            printf "reset\n"  # reset to default values after each plot
         endif
     endloop
 
-    print error_string
+    if nelem(error_string)
+        print error_string
+    endif
 end function
 
 
 function string set_terminal (const string file_type)
-    /* Set the gnuplot terminal. */
+    /* Determine the gnuplot terminal identifier name. */
 
     if file_type == "png"
         string terminal = "png"
@@ -160,32 +124,24 @@ function string multiplot (const strings files_input "Input file paths/names",
                            int n_rows[0::0] "Number of rows in plot grid",
                            int n_cols[0::0] "Number of cols in plot grid",
                            bundle options[null])
-
     /*
-       files_input: paths to gnuplot code files
-       (if just a file name is given then it must be in the
-       current workdir)
-
-       file_output: optional, where to write the compiled output plot; can be pdf, eps, etc., or "display" (see gnuplot doc)
-
-       Default values 0 for both r and c means to try a square grid.       Leaving just one of r or c at default means to auto-adjust to the other input. (For example, to get side-by-side do r=1 and c=0.)
-
-       The output string contains the gnuplot plot code.
+       Main public function.
+       return: String containing the gnuplot plot code.
     */
 
     check_version_of_extra_package()
 
     # Initializations
     if !exists(file_output) || (exists(file_output) && !strlen(file_output))
-      string file_output = "display"
-      string file_type = "png"
+        string file_output = "display"
+        string file_type = "png"
     else
-      string file_type = splitfname(file_output)[3]				# FIXME: dependency to 'extra' v0.6
+        string file_type = splitfname(file_output)[3]
     endif
     if exists(options)
-      bundle options = options + get_default_parameters()
+        bundle options = options + get_default_parameters()
     else
-      bundle options = get_default_parameters()
+        bundle options = get_default_parameters()
     endif
 
     string terminal = set_terminal(file_type)
@@ -196,8 +152,3 @@ function string multiplot (const strings files_input "Input file paths/names",
 
     return readfile(file_tmp)
 end function
-
-
-
-
-
