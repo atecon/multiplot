@@ -35,7 +35,14 @@ elif CASE == 4						# qqplot FAILS
     qqplot IDE --output=tf4.gp
 endif
 
-bundle options = defbundle("POINT_SIZE", 4)
+
+bundle options = defbundle("POINT_SIZE", 1)
+
+Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+  "my.pdf", , , options)
+Gin
+stop
+
 
 string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "foo.png", , , options)

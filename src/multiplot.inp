@@ -33,13 +33,12 @@ end function
 function bundle get_default_parameters (void)
   /* Set default plotting parameters here. */
 
-  bundle P = defbundle\
-    (\
+  bundle P = defbundle(\
     "PLOT_WIDTH", 800,\
     "PLOT_HEIGHT", 600,\
     "POINT_SIZE", 1,\
-    "LINE_WIDTH", 1\
-    )
+    "LINE_WIDTH", 1,\
+    "FONT_SIZE", 12)
 
   return P
 end function
@@ -47,16 +46,12 @@ end function
 
 function void write_terminal_and_plot_details (const string terminal,
                                                const int n_rows,
-                                               const int n_cols)
+                                               const int n_cols,
+                                               const bundle options)
     /* Set number of rows and columns for grid. */
 
-    # Setting canvas size: difficult and terminal-dependent!
-    # We start from a "normal" aspect ratio of 16:10
-    scalar dim_horizontal = 16
-    scalar dim_vertical = 10
-
     if terminal == "pdfcairo"
-        set_canvas_pdfcairo(n_rows, n_cols, dim_horizontal, dim_vertical)
+        set_canvas_pdfcairo(n_rows, n_cols, options)
     else
         set_canvas_non_pdfcairo(n_rows, n_cols, dim_horizontal, dim_vertical, terminal)
     endif
@@ -69,16 +64,18 @@ end function
 
 function void set_canvas_pdfcairo (const int n_rows,
                                    const int n_cols,
-                                   const int dim_horizontal,
-                                   const int dim_vertical)
+                                   const bundle options)
     /* */
 
-    scalar factor = 1
+    scalar PLOT_HEIGHT = options.PLOT_HEIGHT / 100
+    scalar PLOT_WIDTH = options.PLOT_WIDTH / 100
+
     printf "set term pdfcairo font ',%d' size %d,%d\n",\
-      (32 * factor), (dim_horizontal * factor * n_cols), (dim_vertical * factor * n_rows)
-    printf "set pointsize %d\n", 2 * factor
-    printf "set linetype 1 linewidth %d\n", 6 * factor
-    printf "set linetype 2 linewidth %d\n", 6 * factor
+      options.FONT_SIZE, PLOT_WIDTH, PLOT_HEIGHT
+    printf "set pointsize %d\n", options.POINT_SIZE
+    loop i=1..6
+      printf "set linetype %d linewidth %d\n", $i, options.LINE_WIDTH
+    endloop
 end function
 
 

@@ -27,7 +27,7 @@ PLOT_WIDTH: default: 800 (pixels)
 ASPECT_RATIO_VERTICAL: 600 (pixels)
 POINT_SIZE: 1
 LINE_WIDTH: 1
-
+FONT_SIZE = 12
 
 
 
