@@ -12,8 +12,10 @@ Function:       multiplot(const strings files_input, const string file_output,
 Arguments:      strings, Array of filenames each referring to a gnuplot file
                 string, Full output file path for storing compiled plot
                 (optional)
-                int, Number of rows of the multiplot grid; if zero determined by the number of columns chosen.
-                int, Number of columns of the multiplot grid; if zero determined by the number of rows chosen.
+                int, Number of rows of the multiplot grid; if zero determined
+                by the number of columns chosen.
+                int, Number of columns of the multiplot grid; if zero
+                determined by the number of rows chosen.
                 bundle, Parameters for fine-tuning the plot (optional)
 
 Return:
