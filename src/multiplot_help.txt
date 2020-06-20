@@ -1,6 +1,6 @@
 This package compiles a multiplot graph comprising multiple sub plots.
 
-Please ask questions and report bugs on the gretl mailing list if possible. Alternatively, open an issue ticket on my github repo.
+Please ask questions and report bugs on the gretl mailing list if possible. Alternatively, create an issue ticket on the github repo (see below).
 Source code and test script(s) can be found here:
 https://github.com/atecon/multiplot
 
