@@ -64,16 +64,17 @@ end function
 
 
 function string compile_and_write_joint_code (const string terminal,
-                                              const strings files_input,
+                                              const strings codes,
                                               const int n_rows,
                                               const int n_cols,
                                               const bundle options)
-    /* Open temporary file, write gnuplot stuff and clode file. */
+    /* Write gnuplot script codes to temporary files.
+        return: string, multiplot script */
 
     string file_tmp
     outfile --tempfile=file_tmp
         write_terminal_and_mplot_dims(terminal, n_rows, n_cols, options)
-        read_input_files_write_to_tmp(files_input)
+        print_codes(codes)
         print "unset multiplot"
     end outfile
 
@@ -81,26 +82,28 @@ function string compile_and_write_joint_code (const string terminal,
 end function
 
 
-function void read_input_files_write_to_tmp (const strings files_input)
-/* Read in gp-files of separate plots, and write content
-    to common gnuplot file. */
+function strings get_file_contents (const strings files_input)
+    /* Retrieve content of input gnuplot files. We also check whether files actually exist.
+    return: strings, Array including code. */
 
-    scalar N = nelem(files_input)
-    string error_string = ""
+    strings codes = array(0)
 
-    loop i=1..N --quiet
-        catch string file_content = readfile(files_input[i])
-        if $error
-            error_string ~= sprintf("Warning: Error reading file %s. Ignored.\n", files_input[i])
-        else
-            printf "%s\n", file_content
-            printf "reset\n"  # reset to default values after each plot
-        endif
+    loop i=1..nelem(files_input) --quiet
+        catch string content = readfile(files_input[i])
+        errorif($error, sprintf("\nError: file '%s' does not exist.\n", files_input[i]))
+        codes += content
     endloop
 
-    if nelem(error_string)
-        print error_string
-    endif
+    return codes
+end function
+
+function void print_codes (const strings codes)
+/* Write code of separate plots, and write content to common gnuplot file. */
+
+    loop i=1..nelem(codes) --quiet
+        printf "%s\n", codes[i]
+        printf "reset\n"  # reset to default values after each plot
+    endloop
 end function
 
 
@@ -133,6 +136,8 @@ function string multiplot (const strings files_input "Input file paths/names",
 
     check_version_of_extra_package()
 
+    strings codes = get_file_contents(files_input)
+
     # Initializations
     if !exists(file_output) || (exists(file_output) && !strlen(file_output))
         string file_output = "display"
@@ -147,8 +152,8 @@ function string multiplot (const strings files_input "Input file paths/names",
     endif
 
     string terminal = set_terminal(file_type)
-    set_grid_dimension(&n_rows, &n_cols, nelem(files_input))
-    string file_tmp = compile_and_write_joint_code(terminal, files_input, n_rows, n_cols, options)
+    set_grid_dimension(&n_rows, &n_cols, nelem(codes))
+    string file_tmp = compile_and_write_joint_code(terminal, codes, n_rows, n_cols, options)
 
     gnuplot --input="@file_tmp" --output="@file_output"
 

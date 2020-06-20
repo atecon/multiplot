@@ -161,16 +161,42 @@ function void test_write_terminal (void)
 end function
 test_write_terminal()
 
+function void test_get_file_contents (void)
+    print "Start testing get_file_contents()."
+
+    outfile "test1.gp"
+        print "some gnuplot code"
+    end outfile
+    outfile "test2.gp"
+        print "another gnuplot script"
+    end outfile
+
+    strings codes = get_file_contents(defarray("test1.gp", "test2.gp"))
+
+    assert_true(instring(codes[1], "some gnuplot code"))
+    assert_true(instring(codes[2], "another gnuplot script"))
+end function
+test_get_file_contents()
+
+
+function void test_print_codes (void)
+    print "Start testing print_codes()."
+
+    string buffer
+    outfile --buffer=buffer
+        print_codes(defarray("FIRST PLOT", "SECOND PLOT"))
+    end outfile
+
+    assert_true(instring(buffer, "FIRST PLOT"))
+    assert_true(instring(buffer, "SECOND PLOT"))
+end function
+test_print_codes()
+
 
 function void test_compile_write_joint_code (void)
-    print "Tests for compile_and_write_joint_code() no implemented."
+    print "Tests for compile_and_write_joint_code() not implemented."
 end function
 test_compile_write_joint_code()
-
-function void test_read_input_files_write (void)
-    print "Tests for read_input_files_write_to_tmp() no implemented."
-end function
-test_read_input_files_write()
 
 
 
