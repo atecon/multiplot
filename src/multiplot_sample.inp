@@ -5,7 +5,7 @@ open denmark -q
 include multiplot.gfn
 
 # Select an example case
-scalar CASE = 4
+scalar CASE = 1
 # Fine tune the graph if wished
 bundle options = defbundle("FONT_SIZE", 10, "PLOT_HEIGHT", 700)
 

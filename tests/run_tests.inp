@@ -4,4 +4,175 @@ clear
 include "./src/multiplot.inp" --force
 include assertion.gfn
 
-printf "\nNo tests implemented yet.\n"
+function void test_set_grid_dimension (void)
+    print "Start testing set_grid_dimension()"
+
+    scalar n_rows = 2
+    scalar n_cols = 0
+    scalar N = 4
+    set_grid_dimension(&n_rows, &n_cols, N)
+    assert_equal_num(n_rows, 2)
+    assert_equal_num(n_cols, 2)
+
+    scalar n_rows = 0
+    scalar n_cols = 0
+    scalar N = 4
+    set_grid_dimension(&n_rows, &n_cols, N)
+    assert_equal_num(n_rows, 2)
+    assert_equal_num(n_cols, 2)
+
+    scalar n_rows = 0
+    scalar n_cols = 2
+    scalar N = 4
+    set_grid_dimension(&n_rows, &n_cols, N)
+    assert_equal_num(n_rows, 2)
+    assert_equal_num(n_cols, 2)
+
+    scalar n_rows = 2
+    scalar n_cols = 2
+    scalar N = 4
+    set_grid_dimension(&n_rows, &n_cols, N)
+    assert_equal_num(n_rows, 2)
+    assert_equal_num(n_cols, 2)
+
+    scalar n_rows = 2
+    scalar n_cols = 1
+    scalar N = 4
+    catch set_grid_dimension(&n_rows, &n_cols, N)
+    assert_equal_num(n_rows, 2)
+    assert_equal_num(n_cols, 1)
+
+    scalar n_rows = 1
+    scalar n_cols = 2
+    scalar N = 4
+    catch set_grid_dimension(&n_rows, &n_cols, N)
+    assert_equal_num(n_rows, 1)
+    assert_equal_num(n_cols, 2)
+
+    scalar n_rows = 2
+    scalar n_cols = 2
+    scalar N = 3
+    catch set_grid_dimension(&n_rows, &n_cols, N)
+    assert_equal_num(n_rows, 2)
+    assert_equal_num(n_cols, 2)
+end function
+test_set_grid_dimension()
+
+
+function void test_get_default_parameters (void)
+    print "Start get_default_parameters()."
+
+    bundle B = get_default_parameters()
+    assert_equal_num(nelem(B), 3)
+    assert_equal_num(B.PLOT_WIDTH, 800)
+    assert_equal_num(B.PLOT_HEIGHT, 600)
+    assert_equal_num(B.FONT_SIZE, 12)
+end function
+test_get_default_parameters()
+
+
+function void test_set_canvas (void)
+    print "Start set_canvas()."
+
+    string terminal = "pdfcairo"
+    bundle options = \
+        defbundle(\
+        "PLOT_WIDTH", 800,\
+        "PLOT_HEIGHT", 600,\
+        "FONT_SIZE", 11)
+
+    string buffer = ""
+    outfile --buffer=buffer
+        set_canvas(terminal, options)
+    end outfile
+    assert_equal_str(strstrip(buffer), "set term pdfcairo font ',11' size 8,6")
+
+    string terminal = "epscairo"
+    bundle options = \
+        defbundle(\
+        "PLOT_WIDTH", 800,\
+        "PLOT_HEIGHT", 600,\
+        "FONT_SIZE", 11)
+
+    string buffer = ""
+    outfile --buffer=buffer
+        set_canvas(terminal, options)
+    end outfile
+    assert_equal_str(strstrip(buffer), "set term epscairo font ',11' size 8,6")
+
+    string terminal = "png"
+    bundle options = \
+        defbundle(\
+        "PLOT_WIDTH", 800,\
+        "PLOT_HEIGHT", 600,\
+        "FONT_SIZE", 11)
+
+    string buffer = ""
+    outfile --buffer=buffer
+        set_canvas(terminal, options)
+    end outfile
+    assert_equal_str(strstrip(buffer), "set term png font ',11' size 800,600")
+
+    string terminal = "svg"
+    bundle options = \
+        defbundle(\
+        "PLOT_WIDTH", 800,\
+        "PLOT_HEIGHT", 600,\
+        "FONT_SIZE", 11)
+
+    string buffer = ""
+    outfile --buffer=buffer
+        set_canvas(terminal, options)
+    end outfile
+    assert_equal_str(strstrip(buffer), "set term svg font ',11' size 800,600")
+end function
+test_set_canvas()
+
+function void test_set_terminal (void)
+    print "Start set_terminal()."
+
+    assert_equal_str(set_terminal("png"), "png")
+    assert_equal_str(set_terminal("svg"), "svg")
+    assert_equal_str(set_terminal("pdf"), "pdfcairo")
+    assert_equal_str(set_terminal("eps"), "epscairo")
+end function
+test_set_terminal()
+
+
+function void test_write_terminal (void)
+    print "Start write_terminal_and_mplot_dims()."
+
+    string terminal = "png"
+    bundle options = \
+        defbundle(\
+        "PLOT_WIDTH", 800,\
+        "PLOT_HEIGHT", 600,\
+        "FONT_SIZE", 11)
+    scalar n_rows = 2
+    scalar n_cols = 2
+
+    string buffer = ""
+    outfile --buffer=buffer
+        write_terminal_and_mplot_dims(terminal, n_rows, n_cols, options)
+    end outfile
+
+    assert_true(instring(buffer, "set term png font ',11' size 800,600"))
+    assert_true(instring(buffer, "set multiplot layout 2,2 rowsfirst"))
+end function
+test_write_terminal()
+
+
+function void test_compile_write_joint_code (void)
+    print "Tests for compile_and_write_joint_code() no implemented."
+end function
+test_compile_write_joint_code()
+
+function void test_read_input_files_write (void)
+    print "Tests for read_input_files_write_to_tmp() no implemented."
+end function
+test_read_input_files_write()
+
+
+
+printf "\n\nAll tests succesfully passed.\n"
+quit

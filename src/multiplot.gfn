@@ -3,7 +3,7 @@
 <gretl-function-package name="multiplot" no-data-ok="true" minver="2020b">
 <author email="atecon@posteo.de">Sven Schreiber and Artur Tarassow</author>
 <version>0.1</version>
-<date>2020-06-07</date>
+<date>2020-06-020</date>
 <description>Combine multiple plots to a single graph</description>
 <tags>C88</tags>
 <help>
@@ -64,10 +64,8 @@ extra </depends>
   </param>
   <param name="options" type="bundle" optional="true"/>
  </params>
-<code>/*
-Main public function.
-return: String containing the gnuplot plot code.
-*/
+<code>/* Main public function.
+return: String containing the gnuplot plot code. */
 check_version_of_extra_package()
 # Initializations
 if !exists(file_output) || (exists(file_output) &amp;&amp; !strlen(file_output))
@@ -104,17 +102,19 @@ endif
   <param name="N" type="int" const="true"/>
  </params>
 <code>/* Set number of rows and columns for grid. */
-if n_rows &amp;&amp; n_cols &amp;&amp; N &gt; (n_rows * n_cols)	# fully manual spec
-  funcerr(sprintf(&quot;The specified grid (%d by %d) is insufficient for the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N))
+if n_rows * n_cols &gt; 0
+  if N &gt; (n_rows * n_cols)	# fully manual spec
+    funcerr(sprintf(&quot;The specified grid (%d by %d) is insufficient for the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N))
+  elif N &lt; (n_rows * n_cols)
+    funcerr(sprintf(&quot;The specified grid (%d by %d) exceeds the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N))
+  endif
 elif n_rows &amp;&amp; !n_cols
   n_cols = ceil(N / n_rows)
 elif !n_rows &amp;&amp; n_cols
   n_rows = ceil(N / n_cols)
-elif !n_rows &amp;&amp; !n_cols			# fully auto
+elif !n_rows &amp;&amp; !n_cols			# fully automatic specification
   n_rows = ceil(sqrt(N))
   n_cols = ceil(N / n_rows)
-else
-  funcerr(sprintf(&quot;The specified grid (%d by %d) exceeds the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N))
 endif
 </code>
 </gretl-function>
@@ -142,7 +142,7 @@ printf &quot;set multiplot layout %d,%d rowsfirst\n&quot;, n_rows, n_cols
  </params>
 <code>/* Actual writing of the terminal command: Set size of canvas and font size.*/
 scalar factor = 1
-factor = (terminal == &quot;pdfcairo&quot; || terminal == &quot;eps&quot;) ? 100 : factor
+factor = (terminal == &quot;pdfcairo&quot; || terminal == &quot;epscairo&quot;) ? 100 : factor
 printf &quot;set term %s font ',%d' size %d,%d\n&quot;, terminal, options.FONT_SIZE, options.PLOT_WIDTH / factor, options.PLOT_HEIGHT / factor
 </code>
 </gretl-function>
@@ -196,9 +196,11 @@ if file_type == &quot;png&quot;
 elif file_type == &quot;pdf&quot;
   string terminal = &quot;pdfcairo&quot;
 elif file_type == &quot;eps&quot;
-  string terminal = &quot;postscript eps&quot;
+  string terminal = &quot;epscairo&quot;
 elif file_type == &quot;svg&quot;
   string terminal = &quot;svg&quot;
+else
+  funcerr(sprintf(&quot;Error: Requested terminal '%s' is not supported.\n&quot;))
 endif
 return terminal
 </code>
@@ -211,7 +213,7 @@ open denmark -q
 include multiplot.gfn
 
 # Select an example case
-scalar CASE = 4
+scalar CASE = 1
 # Fine tune the graph if wished
 bundle options = defbundle(&quot;FONT_SIZE&quot;, 10, &quot;PLOT_HEIGHT&quot;, 700)
 
