@@ -69,7 +69,7 @@ function string compile_and_write_joint_code (const string terminal,
                                               const int n_cols,
                                               const bundle options)
     /* Write gnuplot script codes to temporary files.
-        return: string, multiplot script */
+    return: string, multiplot script */
 
     string file_tmp
     outfile --tempfile=file_tmp
@@ -83,7 +83,7 @@ end function
 
 
 function strings get_file_contents (const strings files_input)
-    /* Retrieve content of input gnuplot files. We also check whether files actually exist.
+/* Retrieve content of input gnuplot files. We also check whether files actually exist.
     return: strings, Array including code. */
 
     strings codes = array(0)
@@ -98,7 +98,7 @@ function strings get_file_contents (const strings files_input)
 end function
 
 function void print_codes (const strings codes)
-/* Write code of separate plots, and write content to common gnuplot file. */
+    /* Write code of separate plots, and write content to common gnuplot file. */
 
     loop i=1..nelem(codes) --quiet
         printf "%s\n", codes[i]
@@ -132,7 +132,7 @@ function string multiplot (const strings files_input "Input file paths/names",
                            int n_cols[0::0] "Number of cols in plot grid",
                            bundle options[null])
     /* Main public function.
-       return: String containing the gnuplot plot code. */
+    return: String containing the gnuplot plot code. */
 
     check_version_of_extra_package()
 

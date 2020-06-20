@@ -5,7 +5,7 @@ open denmark -q
 include multiplot.gfn
 
 # Select an example case
-scalar CASE = 1
+scalar CASE = 3
 # Fine tune the graph if wished
 bundle options = defbundle("FONT_SIZE", 10, "PLOT_HEIGHT", 700)
 
@@ -13,7 +13,7 @@ bundle options = defbundle("FONT_SIZE", 10, "PLOT_HEIGHT", 700)
 if CASE == 1
     setopt gnuplot persist --time-series --with-lines
     gnuplot LRM --output=tf1.gp { set title "foo" ; set yrange[10:12]; \
-        set ylabel "ylabel"; set linetype 1 lw 2 pt 6 lc rgb "blue" ; }
+      set ylabel "ylabel"; set linetype 1 lw 2 pt 6 lc rgb "blue" ; }
     gnuplot LRY --output=tf2.gp { set title "foo" ; set xlabel "xlabel"; }
     gnuplot IBO --output=tf3.gp { set title "foo" ; set grid ; }
     gnuplot IDE --output=tf4.gp
@@ -29,7 +29,7 @@ elif CASE == 3
     gnuplot IDE --output=tf4.gp --time-series --with-lines
 elif CASE == 4						# qqplot FAILS
     gnuplot IBO --output=tf1.gp --time-series --with-lines { set title "foo" ; set yrange[-10:10]; \
-        set ylabel "ylabel"; }
+      set ylabel "ylabel"; }
     gnuplot IDE --output=tf2.gp --time-series --with-lines { set title "foo" ; set xlabel "xlabel"; }
     qqplot IBO --output=tf3.gp
     freq IDE --plot=tf4.gp
@@ -48,7 +48,6 @@ string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
 string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "foo.png", 4, , options)
 
-
-# FIXME: Does not work yet!
+# Automatic grid determination + eps output
 Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "my.eps", , , options)
