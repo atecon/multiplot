@@ -18,23 +18,25 @@ PUBLIC FUNCTION:
 -----------------------------------------------------------------------
 Function:       multiplot(const strings files_input, const string file_output,
                 int n_rows, int n_cols, bundle options)
-Arguments:      strings, Array of filenames each referring to a gnuplot file
-                string, Full output file path for storing compiled plot
-                (optional)
-                int, Number of rows of the multiplot grid; if zero determined
-                by the number of columns chosen.
-                int, Number of columns of the multiplot grid; if zero
-                determined by the number of rows chosen.
-                bundle, Parameters for fine-tuning the plot (optional)
+Arguments:
+files_input:    strings, Array of filenames each referring to a gnuplot file
+file_output:    string, Full output file path for storing compiled plot
+                (optional, default '0')
+n_rows:         int, Number of rows of the multiplot grid; if zero determined
+                (optional) by the number of columns chosen.
+n_cols:         int, Number of columns of the multiplot grid (optional,
+                default '0'); if zero determined by the number of rows chosen.
+options:        bundle, Parameters for fine-tuning the plot (optional,
+                see below for default values)
 
 Return:
-String variable including the gnuplot command.
+String variable including the gnuplot command. Plots are stored if 'file_output' is specified.
 -----------------------------------------------------------------------
 
 
-Note on optional parameters
+Optional parameters
 ---------------------------
-The user can pass an optional bundle as the fifth argument for fine-tuning the multiplot. The following parameters are currently supported and their default values are:
+The user can pass an optional bundle ('options') as the fifth argument for fine-tuning the multiplot. The following parameters are currently supported and their default values are:
 
 PLOT_WIDTH: default: 800 (pixels)
 PLOT_HEIGHT: 600 (pixels)
@@ -219,7 +221,7 @@ open denmark -q
 include multiplot.gfn
 
 # Select an example case
-scalar CASE = 3
+scalar CASE = 1
 # Fine tune the graph if wished
 bundle options = defbundle(&quot;FONT_SIZE&quot;, 10, &quot;PLOT_HEIGHT&quot;, 700)
 
