@@ -3,7 +3,7 @@
 <gretl-function-package name="multiplot" no-data-ok="true" minver="2020b">
 <author email="atecon@posteo.de">Sven Schreiber and Artur Tarassow</author>
 <version>0.1</version>
-<date>2020-06-020</date>
+<date>2020-06-20</date>
 <description>Combine multiple plots to a single graph</description>
 <tags>C88</tags>
 <help>
@@ -67,6 +67,7 @@ extra </depends>
 <code>/* Main public function.
 return: String containing the gnuplot plot code. */
 check_version_of_extra_package()
+strings codes = get_file_contents(files_input)
 # Initializations
 if !exists(file_output) || (exists(file_output) &amp;&amp; !strlen(file_output))
   string file_output = &quot;display&quot;
@@ -80,8 +81,8 @@ else
   bundle options = get_default_parameters()
 endif
 string terminal = set_terminal(file_type)
-set_grid_dimension(&amp;n_rows, &amp;n_cols, nelem(files_input))
-string file_tmp = compile_and_write_joint_code(terminal, files_input, n_rows, n_cols, options)
+set_grid_dimension(&amp;n_rows, &amp;n_cols, nelem(codes))
+string file_tmp = compile_and_write_joint_code(terminal, codes, n_rows, n_cols, options)
 gnuplot --input=&quot;@file_tmp&quot; --output=&quot;@file_output&quot;
 return readfile(file_tmp)
 </code>
@@ -149,41 +150,46 @@ printf &quot;set term %s font ',%d' size %d,%d\n&quot;, terminal, options.FONT_S
 <gretl-function name="compile_and_write_joint_code" type="string" private="1">
  <params count="5">
   <param name="terminal" type="string" const="true"/>
-  <param name="files_input" type="strings" const="true"/>
+  <param name="codes" type="strings" const="true"/>
   <param name="n_rows" type="int" const="true"/>
   <param name="n_cols" type="int" const="true"/>
   <param name="options" type="bundle" const="true"/>
  </params>
-<code>/* Open temporary file, write gnuplot stuff and clode file. */
+<code>/* Write gnuplot script codes to temporary files.
+return: string, multiplot script */
 string file_tmp
 outfile --tempfile=file_tmp
   write_terminal_and_mplot_dims(terminal, n_rows, n_cols, options)
-  read_input_files_write_to_tmp(files_input)
+  print_codes(codes)
   print &quot;unset multiplot&quot;
 end outfile
 return file_tmp
 </code>
 </gretl-function>
-<gretl-function name="read_input_files_write_to_tmp" type="void" private="1">
+<gretl-function name="get_file_contents" type="strings" private="1">
  <params count="1">
   <param name="files_input" type="strings" const="true"/>
  </params>
-<code>/* Read in gp-files of separate plots, and write content
-to common gnuplot file. */
-scalar N = nelem(files_input)
-string error_string = &quot;&quot;
-loop i=1..N --quiet
-  catch string file_content = readfile(files_input[i])
-  if $error
-    error_string ~= sprintf(&quot;Warning: Error reading file %s. Ignored.\n&quot;, files_input[i])
-  else
-    printf &quot;%s\n&quot;, file_content
-    printf &quot;reset\n&quot;  # reset to default values after each plot
-  endif
+<code>/* Retrieve content of input gnuplot files. We also check whether files actually exist.
+return: strings, Array including code. */
+strings codes = array(0)
+loop i=1..nelem(files_input) --quiet
+  catch string content = readfile(files_input[i])
+  errorif($error, sprintf(&quot;\nError: file '%s' does not exist.\n&quot;, files_input[i]))
+  codes += content
 endloop
-if nelem(error_string)
-  print error_string
-endif
+return codes
+</code>
+</gretl-function>
+<gretl-function name="print_codes" type="void" private="1">
+ <params count="1">
+  <param name="codes" type="strings" const="true"/>
+ </params>
+<code>/* Write code of separate plots, and write content to common gnuplot file. */
+loop i=1..nelem(codes) --quiet
+  printf &quot;%s\n&quot;, codes[i]
+  printf &quot;reset\n&quot;  # reset to default values after each plot
+endloop
 </code>
 </gretl-function>
 <gretl-function name="set_terminal" type="string" private="1">
@@ -213,7 +219,7 @@ open denmark -q
 include multiplot.gfn
 
 # Select an example case
-scalar CASE = 1
+scalar CASE = 3
 # Fine tune the graph if wished
 bundle options = defbundle(&quot;FONT_SIZE&quot;, 10, &quot;PLOT_HEIGHT&quot;, 700)
 
@@ -221,7 +227,7 @@ bundle options = defbundle(&quot;FONT_SIZE&quot;, 10, &quot;PLOT_HEIGHT&quot;, 7
 if CASE == 1
     setopt gnuplot persist --time-series --with-lines
     gnuplot LRM --output=tf1.gp { set title &quot;foo&quot; ; set yrange[10:12]; \
-        set ylabel &quot;ylabel&quot;; set linetype 1 lw 2 pt 6 lc rgb &quot;blue&quot; ; }
+      set ylabel &quot;ylabel&quot;; set linetype 1 lw 2 pt 6 lc rgb &quot;blue&quot; ; }
     gnuplot LRY --output=tf2.gp { set title &quot;foo&quot; ; set xlabel &quot;xlabel&quot;; }
     gnuplot IBO --output=tf3.gp { set title &quot;foo&quot; ; set grid ; }
     gnuplot IDE --output=tf4.gp
@@ -237,7 +243,7 @@ elif CASE == 3
     gnuplot IDE --output=tf4.gp --time-series --with-lines
 elif CASE == 4						# qqplot FAILS
     gnuplot IBO --output=tf1.gp --time-series --with-lines { set title &quot;foo&quot; ; set yrange[-10:10]; \
-        set ylabel &quot;ylabel&quot;; }
+      set ylabel &quot;ylabel&quot;; }
     gnuplot IDE --output=tf2.gp --time-series --with-lines { set title &quot;foo&quot; ; set xlabel &quot;xlabel&quot;; }
     qqplot IBO --output=tf3.gp
     freq IDE --plot=tf4.gp
@@ -256,8 +262,7 @@ string Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.
 string Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;),\
   &quot;foo.png&quot;, 4, , options)
 
-
-# FIXME: Does not work yet!
+# Automatic grid determination + eps output
 Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;),\
   &quot;my.eps&quot;, , , options)
 </sample-script>
