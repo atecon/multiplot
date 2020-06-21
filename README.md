@@ -40,7 +40,7 @@ Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
 
 The resulting figure will look (similar) to this one:
 
-[sample]: https://github.com/atecon/multiplot/raw/master/screenshot.png "Example"
+![sample](https://github.com/atecon/multiplot/raw/master/screenshot.png)
 
 
 # PUBLIC FUNCTION
