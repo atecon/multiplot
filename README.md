@@ -36,6 +36,11 @@ Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "my.pdf", , , options)
 ```
 
+The resulting figure will look (similar) to this one:
+
+[sample]: https://raw.githubusercontent.com/atecon/multiplot/master/screenshot.png "Example"
+
+
 # PUBLIC FUNCTION
 
 Function:       *multiplot(const strings files_input, const string file_output,
