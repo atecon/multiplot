@@ -21,10 +21,12 @@ include multiplot.gfn
 bundle options = defbundle("FONT_SIZE", 10, "PLOT_HEIGHT", 700)
 
 # Call various gretl plots and store each one as a gnuplot-file (mimetype "*.gp")
-gnuplot IBO --output=tf1.gp --time-series --with-lines { set title "foo" ; set yrange[-10:10]; set ylabel "ylabel"; }
+gnuplot IBO --output=tf1.gp --time-series --with-lines { set title "foo" ; set yrange[0:0.5]; \
+  set ylabel "ylabel"; }
 gnuplot IDE --output=tf2.gp --time-series --with-lines { set title "foo" ; set xlabel "xlabel"; }
 qqplot IBO --output=tf3.gp
 freq IDE --plot=tf4.gp
+
 
 # Multiplot with 4 rows + png output
 # Pass the full path to each of the gp-files supposed to be added to the multiplot
@@ -38,7 +40,7 @@ Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
 
 The resulting figure will look (similar) to this one:
 
-[sample]: https://raw.githubusercontent.com/atecon/multiplot/master/screenshot.png "Example"
+[sample]: https://github.com/atecon/multiplot/raw/master/screenshot.png "Example"
 
 
 # PUBLIC FUNCTION
