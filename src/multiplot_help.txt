@@ -4,6 +4,8 @@ Please ask questions and report bugs on the gretl mailing list if possible. Alte
 Source code and test script(s) can be found here:
 https://github.com/atecon/multiplot
 
+**Note**: For Windows (and probably MAC) users we recommend to use the latest snapshot containing gnuplot version 5.2.6 instead of 5.2.4. The snapshot for Windows can be downloaded here: http://sourceforge.net/projects/gretl/files/snapshots/gretl_install-64.exe/download
+
 
 PUBLIC FUNCTION:
 -----------------------------------------------------------------------
@@ -36,5 +38,7 @@ FONT_SIZE = 12
 
 
 Changelog:
+- v0.11, June 2020:
+	+ Add note to use gnuplot 5.2.6 (available in latest snapshot) due to some bug on Windows systems.
 - v0.1, June 2020:
 	+ initial release

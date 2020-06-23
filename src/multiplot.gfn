@@ -2,16 +2,18 @@
 <gretl-functions>
 <gretl-function-package name="multiplot" no-data-ok="true" minver="2020b">
 <author email="atecon@posteo.de">Sven Schreiber and Artur Tarassow</author>
-<version>0.1</version>
-<date>2020-06-20</date>
+<version>0.11</version>
+<date>2020-06-23</date>
 <description>Combine multiple plots to a single graph</description>
 <tags>C88</tags>
 <help>
 This package compiles a multiplot graph comprising multiple sub plots.
 
-Please ask questions and report bugs on the gretl mailing list if possible. Alternatively, open an issue ticket on my github repo.
+Please ask questions and report bugs on the gretl mailing list if possible. Alternatively, create an issue ticket on the github repo (see below).
 Source code and test script(s) can be found here:
 https://github.com/atecon/multiplot
+
+**Note**: For Windows (and probably MAC) users we recommend to use the latest snapshot containing gnuplot version 5.2.6 instead of 5.2.4. The snapshot for Windows can be downloaded here: http://sourceforge.net/projects/gretl/files/snapshots/gretl_install-64.exe/download
 
 
 PUBLIC FUNCTION:
@@ -45,6 +47,8 @@ FONT_SIZE = 12
 
 
 Changelog:
+- v0.11, June 2020:
+	+ Add note to use gnuplot 5.2.6 (available in latest snapshot) due to some bug on Windows systems.
 - v0.1, June 2020:
 	+ initial release
 </help>

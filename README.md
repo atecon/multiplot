@@ -4,6 +4,8 @@ This package compiles a multiplot graph comprising multiple sub plots.
 
 # Installation and usage
 
+**Note**: For Windows (and probably MAC) users we recommend to use the latest snapshot containing gnuplot version 5.2.6 instead of 5.2.4. The snapshot for Windows can be downloaded here: http://sourceforge.net/projects/gretl/files/snapshots/gretl_install-64.exe/download
+
 Get the package from the gretl package server and install it:
 ```
 pkg install multiplot
