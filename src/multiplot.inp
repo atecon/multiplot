@@ -1,7 +1,7 @@
 function void check_os_and_gretl_version (void)
     /* Check for installed OS and gretl version. */
 
-    if ($sysinfo.windows || $sysinfo.os = "osx") && $version < 20202
+    if ($sysinfo.os == "windows" || $sysinfo.os == "osx") && $version < 20202
         funcerr(sprintf("Due to some issue with gnuplot version 5.2.4 on your\n\
             system you should install the current snapshot."))
     endif

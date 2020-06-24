@@ -98,7 +98,7 @@ return readfile(file_tmp)
 </gretl-function>
 <gretl-function name="check_os_and_gretl_version" type="void" private="1">
 <code>/* Check for installed OS and gretl version. */
-if ($sysinfo.windows || $sysinfo.os = &quot;osx&quot;) &amp;&amp; $version &lt; 20202
+if ($sysinfo.os == &quot;windows&quot; || $sysinfo.os == &quot;osx&quot;) &amp;&amp; $version &lt; 20202
   funcerr(sprintf(&quot;Due to some issue with gnuplot version 5.2.4 on your\n             system you should install the current snapshot.&quot;))
 endif
 </code>
