@@ -13,7 +13,9 @@ Please ask questions and report bugs on the gretl mailing list if possible. Alte
 Source code and test script(s) can be found here:
 https://github.com/atecon/multiplot
 
-**Note**: For Windows (and probably MAC) users we recommend to use the latest snapshot containing gnuplot version 5.2.6 instead of 5.2.4. The snapshot for Windows can be downloaded here: http://sourceforge.net/projects/gretl/files/snapshots/gretl_install-64.exe/download
+**Note**: For Windows and MAC users we recommend to use the latest snapshot containing gnuplot version 5.2.6 due to some issues with gnuplot 5.2.4 which is shipped with gretl 2020b. Download here for:
+- Windows here: http://gretl.sourceforge.net/win32/
+- macOS: http://gretl.sourceforge.net/osx.html
 
 
 PUBLIC FUNCTION:
@@ -72,6 +74,7 @@ extra </depends>
  </params>
 <code>/* Main public function.
 return: String containing the gnuplot plot code. */
+check_os_and_gretl_version()
 check_version_of_extra_package()
 strings codes = get_file_contents(files_input)
 # Initializations
@@ -91,6 +94,13 @@ set_grid_dimension(&amp;n_rows, &amp;n_cols, nelem(codes))
 string file_tmp = compile_and_write_joint_code(terminal, codes, n_rows, n_cols, options)
 gnuplot --input=&quot;@file_tmp&quot; --output=&quot;@file_output&quot;
 return readfile(file_tmp)
+</code>
+</gretl-function>
+<gretl-function name="check_os_and_gretl_version" type="void" private="1">
+<code>/* Check for installed OS and gretl version. */
+if ($sysinfo.windows || $sysinfo.os = &quot;osx&quot;) &amp;&amp; $version &lt; 20202
+  funcerr(sprintf(&quot;Due to some issue with gnuplot version 5.2.4 on your\n             system you should install the current snapshot.&quot;))
+endif
 </code>
 </gretl-function>
 <gretl-function name="check_version_of_extra_package" type="void" private="1">

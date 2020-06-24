@@ -1,3 +1,12 @@
+function void check_os_and_gretl_version (void)
+    /* Check for installed OS and gretl version. */
+
+    if ($sysinfo.windows || $sysinfo.os = "osx") && $version < 20202
+        funcerr(sprintf("Due to some issue with gnuplot version 5.2.4 on your\n\
+            system you should install the current snapshot."))
+    endif
+end function
+
 function void check_version_of_extra_package (void)
     /* Need the splitfname() function from the 'extra' package. */
 
@@ -134,6 +143,7 @@ function string multiplot (const strings files_input "Input file paths/names",
     /* Main public function.
     return: String containing the gnuplot plot code. */
 
+    check_os_and_gretl_version()
     check_version_of_extra_package()
 
     strings codes = get_file_contents(files_input)

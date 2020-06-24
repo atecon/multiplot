@@ -4,7 +4,9 @@ Please ask questions and report bugs on the gretl mailing list if possible. Alte
 Source code and test script(s) can be found here:
 https://github.com/atecon/multiplot
 
-**Note**: For Windows (and probably MAC) users we recommend to use the latest snapshot containing gnuplot version 5.2.6 instead of 5.2.4. The snapshot for Windows can be downloaded here: http://sourceforge.net/projects/gretl/files/snapshots/gretl_install-64.exe/download
+**Note**: For Windows and MAC users we recommend to use the latest snapshot containing gnuplot version 5.2.6 due to some issues with gnuplot 5.2.4 which is shipped with gretl 2020b. Download here for:
+- Windows here: http://gretl.sourceforge.net/win32/
+- macOS: http://gretl.sourceforge.net/osx.html
 
 
 PUBLIC FUNCTION:
