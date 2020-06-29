@@ -3,7 +3,7 @@
 <gretl-function-package name="multiplot" no-data-ok="true" minver="2020b">
 <author email="atecon@posteo.de">Sven Schreiber and Artur Tarassow</author>
 <version>0.11</version>
-<date>2020-06-23</date>
+<date>2020-06-24</date>
 <description>Combine multiple plots to a single graph</description>
 <tags>C88</tags>
 <help>
