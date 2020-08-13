@@ -2,8 +2,8 @@
 <gretl-functions>
 <gretl-function-package name="multiplot" no-data-ok="true" minver="2020b">
 <author email="atecon@posteo.de">Sven Schreiber and Artur Tarassow</author>
-<version>0.11</version>
-<date>2020-06-24</date>
+<version>0.2</version>
+<date>2020-08-13</date>
 <description>Combine multiple plots to a single graph</description>
 <tags>C88</tags>
 <help>
@@ -49,6 +49,10 @@ FONT_SIZE = 12
 
 
 Changelog:
+- v0.2, August 2020:
+	+ Bug fix: &quot;display&quot; mode did not work as no terminal was set in this case
+	+ Bug fix: Missing argument for sprintf() function call in case no
+      supported terminal was passed.
 - v0.11, June 2020:
 	+ Add note to use gnuplot 5.2.6 (available in latest snapshot) due to some bug on Windows systems.
 - v0.1, June 2020:
@@ -61,7 +65,7 @@ extra </depends>
   <param name="files_input" type="strings" const="true">
 <description>Input file paths/names</description>
   </param>
-  <param name="file_output" type="string" optional="true" const="true">
+  <param name="file_output" type="string" optional="true">
 <description>Full output file path/name</description>
   </param>
   <param name="n_rows" type="int" min="0" default="0">
@@ -78,7 +82,9 @@ check_os_and_gretl_version()
 check_version_of_extra_package()
 strings codes = get_file_contents(files_input)
 # Initializations
-if !exists(file_output) || (exists(file_output) &amp;&amp; !strlen(file_output))
+if file_output == &quot;display&quot;
+  string file_type = &quot;png&quot;
+elif !exists(file_output) || (exists(file_output) &amp;&amp; !strlen(file_output))
   string file_output = &quot;display&quot;
   string file_type = &quot;png&quot;
 else
@@ -213,18 +219,9 @@ endloop
   <param name="file_type" type="string" const="true"/>
  </params>
 <code>/* Determine the gnuplot terminal identifier name. */
-if file_type == &quot;png&quot;
-  string terminal = &quot;png&quot;
-elif file_type == &quot;pdf&quot;
-  string terminal = &quot;pdfcairo&quot;
-elif file_type == &quot;eps&quot;
-  string terminal = &quot;epscairo&quot;
-elif file_type == &quot;svg&quot;
-  string terminal = &quot;svg&quot;
-else
-  funcerr(sprintf(&quot;Error: Requested terminal '%s' is not supported.\n&quot;))
-endif
-return terminal
+bundle TYPES = defbundle( &quot;png&quot;, &quot;png&quot;, &quot;pdf&quot;, &quot;pdfcairo&quot;, &quot;eps&quot;, &quot;epscairo&quot;, &quot;svg&quot;, &quot;svg&quot;)
+errorif(!inbundle(TYPES, file_type), sprintf(&quot;Error: Requested terminal '%s' is not supported.\n&quot;, file_type))
+return TYPES[&quot;@file_type&quot;]
 </code>
 </gretl-function>
 <sample-script>

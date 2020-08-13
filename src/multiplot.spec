@@ -1,7 +1,7 @@
 author = Sven Schreiber and Artur Tarassow
 email = atecon@posteo.de
-version = 0.11
-date = 2020-06-24
+version = 0.2
+date = 2020-08-13
 description = Combine multiple plots to a single graph
 tags = C88
 min-version = 2020b
