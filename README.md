@@ -68,4 +68,12 @@ The user can pass an optional bundle (```options```) as the fifth argument for f
 - ```FONT_SIZE```: 12
 
 # Changelog:
-- v0.1, June 2020: initial release
+- v0.2, August 2020:
+    + Bug fix: "display" mode did not work as no terminal was set in this case
+    + Bug fix: Missing argument for sprintf() function call in case no
+      supported terminal was passed.
+- v0.11, June 2020:
+	+ Add note to use gnuplot 5.2.6 (available in latest snapshot) due to some bug on Windows systems.
+- v0.1, June 2020:
+	+ initial release
+

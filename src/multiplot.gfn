@@ -3,7 +3,7 @@
 <gretl-function-package name="multiplot" no-data-ok="true" minver="2020b">
 <author email="atecon@posteo.de">Sven Schreiber and Artur Tarassow</author>
 <version>0.2</version>
-<date>2020-08-13</date>
+<date>2020-08-15</date>
 <description>Combine multiple plots to a single graph</description>
 <tags>C88</tags>
 <help>
@@ -12,10 +12,6 @@ This package compiles a multiplot graph comprising multiple sub plots.
 Please ask questions and report bugs on the gretl mailing list if possible. Alternatively, create an issue ticket on the github repo (see below).
 Source code and test script(s) can be found here:
 https://github.com/atecon/multiplot
-
-**Note**: For Windows and MAC users we recommend to use the latest snapshot containing gnuplot version 5.2.6 due to some issues with gnuplot 5.2.4 which is shipped with gretl 2020b. Download here for:
-- Windows here: http://gretl.sourceforge.net/win32/
-- macOS: http://gretl.sourceforge.net/osx.html
 
 
 PUBLIC FUNCTION:
@@ -45,18 +41,19 @@ The user can pass an optional bundle ('options') as the fifth argument for fine-
 PLOT_WIDTH: default: 800 (pixels)
 PLOT_HEIGHT: 600 (pixels)
 FONT_SIZE = 12
-
+----------------------------
 
 
 Changelog:
 - v0.2, August 2020:
-	+ Bug fix: &quot;display&quot; mode did not work as no terminal was set in this case
-	+ Bug fix: Missing argument for sprintf() function call in case no
+    + Bug fix: &quot;display&quot; mode did not work as no terminal was set in this case
+    + Bug fix: Missing argument for sprintf() function call in case no
       supported terminal was passed.
 - v0.11, June 2020:
-	+ Add note to use gnuplot 5.2.6 (available in latest snapshot) due to some bug on Windows systems.
+    + Add note to use gnuplot 5.2.6 (available in latest snapshot) due to some
+      bug on Windows systems.
 - v0.1, June 2020:
-	+ initial release
+    + initial release
 </help>
 <depends count="1">
 extra </depends>
@@ -113,8 +110,9 @@ endif
 <code>/* Need the splitfname() function from the 'extra' package. */
 pkg query extra --quiet
 if $result.version &lt; 0.6
+  printf &quot;\nInfo: At least version 0.6 of the 'extra' package must be installed.\nStart downloading the latest 'extras' package.&quot;
   catch pkg install extra
-  errorif($error &gt; 0, &quot;Failed to install the 'extra' package of minimum version 0.6&quot;)
+  errorif($error &gt; 0, &quot;Failed to download/ install the latest 'extra' package. Try by yourself again: &lt;pkg install extra&gt;.&quot;)
 endif
 </code>
 </gretl-function>

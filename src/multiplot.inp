@@ -12,8 +12,9 @@ function void check_version_of_extra_package (void)
 
     pkg query extra --quiet
     if $result.version < 0.6
+        printf "\nInfo: At least version 0.6 of the 'extra' package must be installed.\nStart downloading the latest 'extras' package."
         catch pkg install extra
-        errorif($error > 0, "Failed to install the 'extra' package of minimum version 0.6")
+        errorif($error > 0, "Failed to download/ install the latest 'extra' package. Try by yourself again: <pkg install extra>.")
     endif
 end function
 
