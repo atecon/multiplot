@@ -35,6 +35,11 @@ elif CASE == 4						# qqplot FAILS
     freq IDE --plot=tf4.gp
 endif
 
+
+# Automatic grid determination + instant output on screen
+string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+  "display", , , options)
+
 # Automatic grid determination + pdf output
 string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "my.pdf", , , options)

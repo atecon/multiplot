@@ -9,9 +9,7 @@
 <help>
 This package compiles a multiplot graph comprising multiple sub plots.
 
-Please ask questions and report bugs on the gretl mailing list if possible. Alternatively, create an issue ticket on the github repo (see below).
-Source code and test script(s) can be found here:
-https://github.com/atecon/multiplot
+Please ask questions and report bugs on the gretl mailing list if possible. Alternatively, create an issue ticket on the github repo (see below). Source code and test script(s) can be found here: https://github.com/atecon/multiplot
 
 
 PUBLIC FUNCTION:
@@ -102,7 +100,7 @@ return readfile(file_tmp)
 <gretl-function name="check_os_and_gretl_version" type="void" private="1">
 <code>/* Check for installed OS and gretl version. */
 if ($sysinfo.os == &quot;windows&quot; || $sysinfo.os == &quot;osx&quot;) &amp;&amp; $version &lt; 20202
-  funcerr(sprintf(&quot;Due to some issue with gnuplot version 5.2.4 on your\n             system you should install the current snapshot.&quot;))
+  funcerr sprintf(&quot;Due to some issue with gnuplot version 5.2.4 on your\n             system you should install the current snapshot.&quot;)
 endif
 </code>
 </gretl-function>
@@ -125,9 +123,9 @@ endif
 <code>/* Set number of rows and columns for grid. */
 if n_rows * n_cols &gt; 0
   if N &gt; (n_rows * n_cols)	# fully manual spec
-    funcerr(sprintf(&quot;The specified grid (%d by %d) is insufficient for the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N))
+    funcerr sprintf(&quot;The specified grid (%d by %d) is insufficient for the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N)
   elif N &lt; (n_rows * n_cols)
-    funcerr(sprintf(&quot;The specified grid (%d by %d) exceeds the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N))
+    funcerr sprintf(&quot;The specified grid (%d by %d) exceeds the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N)
   endif
 elif n_rows &amp;&amp; !n_cols
   n_cols = ceil(N / n_rows)
@@ -259,6 +257,11 @@ elif CASE == 4						# qqplot FAILS
     qqplot IBO --output=tf3.gp
     freq IDE --plot=tf4.gp
 endif
+
+
+# Automatic grid determination + instant output on screen
+string Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;),\
+  &quot;display&quot;, , , options)
 
 # Automatic grid determination + pdf output
 string Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;),\
