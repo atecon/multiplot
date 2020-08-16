@@ -100,7 +100,7 @@ function void test_set_canvas (void)
     end outfile
     assert_equal_str(strstrip(buffer), "set term epscairo font ',11' size 8,6")
 
-    string terminal = "png"
+    string terminal = "pngcairo"
     bundle options = \
         defbundle(\
         "PLOT_WIDTH", 800,\
@@ -111,7 +111,7 @@ function void test_set_canvas (void)
     outfile --buffer=buffer
         set_canvas(terminal, options)
     end outfile
-    assert_equal_str(strstrip(buffer), "set term png font ',11' size 800,600")
+    assert_equal_str(strstrip(buffer), "set term pngcairo font ',11' size 800,600")
 
     string terminal = "svg"
     bundle options = \
@@ -131,7 +131,7 @@ test_set_canvas()
 function void test_set_terminal (void)
     print "Start set_terminal()."
 
-    assert_equal_str(set_terminal("png"), "png")
+    assert_equal_str(set_terminal("png"), "pngcairo")
     assert_equal_str(set_terminal("svg"), "svg")
     assert_equal_str(set_terminal("pdf"), "pdfcairo")
     assert_equal_str(set_terminal("eps"), "epscairo")

@@ -122,14 +122,14 @@ function string set_terminal (const string file_type)
     /* Determine the gnuplot terminal identifier name. */
 
     bundle TYPES = defbundle(\
-                    "png", "png",\
+                    "png", "pngcairo",\
                     "pdf", "pdfcairo",\
                     "eps", "epscairo",\
                     "svg", "svg")
 
-    errorif(!inbundle(TYPES, file_type), sprintf("Error: Requested terminal '%s' is not supported.\n", file_type))
+    errorif(!inbundle(TYPES, file_type), sprintf("Error: Requested terminal '%s' is not supported.", file_type))
 
-    return TYPES["@file_type"]
+    return TYPES[file_type]
 end function
 
 

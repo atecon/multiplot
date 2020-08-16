@@ -38,6 +38,7 @@ Changelog:
     + Bug fix: "display" mode did not work as no terminal was set in this case.
     + Bug fix: Missing argument for sprintf() function call in case no
       supported terminal was passed.
+    + Switch from "png" to "pngcairo" terminal.
 - v0.11, June 2020:
     + Add note to use gnuplot 5.2.6 (available in latest snapshot) due to some
       bug on Windows systems.

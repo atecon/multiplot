@@ -44,9 +44,10 @@ FONT_SIZE = 12
 
 Changelog:
 - v0.2, August 2020:
-    + Bug fix: &quot;display&quot; mode did not work as no terminal was set in this case
+    + Bug fix: &quot;display&quot; mode did not work as no terminal was set in this case.
     + Bug fix: Missing argument for sprintf() function call in case no
       supported terminal was passed.
+    + Switch from &quot;png&quot; to &quot;pngcairo&quot; terminal.
 - v0.11, June 2020:
     + Add note to use gnuplot 5.2.6 (available in latest snapshot) due to some
       bug on Windows systems.
@@ -215,9 +216,9 @@ endloop
   <param name="file_type" type="string" const="true"/>
  </params>
 <code>/* Determine the gnuplot terminal identifier name. */
-bundle TYPES = defbundle( &quot;png&quot;, &quot;png&quot;, &quot;pdf&quot;, &quot;pdfcairo&quot;, &quot;eps&quot;, &quot;epscairo&quot;, &quot;svg&quot;, &quot;svg&quot;)
-errorif(!inbundle(TYPES, file_type), sprintf(&quot;Error: Requested terminal '%s' is not supported.\n&quot;, file_type))
-return TYPES[&quot;@file_type&quot;]
+bundle TYPES = defbundle( &quot;png&quot;, &quot;pngcairo&quot;, &quot;pdf&quot;, &quot;pdfcairo&quot;, &quot;eps&quot;, &quot;epscairo&quot;, &quot;svg&quot;, &quot;svg&quot;)
+errorif(!inbundle(TYPES, file_type), sprintf(&quot;Error: Requested terminal '%s' is not supported.&quot;, file_type))
+return TYPES[file_type]
 </code>
 </gretl-function>
 <sample-script>
