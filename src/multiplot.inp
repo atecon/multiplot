@@ -1,10 +1,11 @@
 function void check_os_and_gretl_version (void)
     /* Check for installed OS and gretl version. */
 
-    if ($sysinfo.os == "windows" || $sysinfo.os == "osx") && $version < 20202
-        funcerr sprintf("Due to some issue with gnuplot version 5.2.4 on your\n\
-            system you should install the current snapshot.")
-    endif
+    errorif( ($sysinfo.os == "windows" || $sysinfo.os == "osx") \
+      && $version < 20202, \
+      "Due to issues with older gnuplot versions please install a newer gretl release.")
+    # (Since gretl 2022a sysinfo.os says "macos" for MacOS, but since here
+    #  only older gretl versions are relevant, using "osx" is fine.)      
 end function
 
 
@@ -13,10 +14,15 @@ function void check_version_of_extra_package (void)
 
     pkg query extra --quiet
     if $result.version < 0.6
-        printf "\nInfo: At least version 0.6 of the 'extra' package must be installed.\nStart downloading the latest 'extras' package."
+        printf "\nInfo: At least version 0.6 of the 'extra' package must be installed.\n"
+        print "Start downloading the latest 'extras' package."
         catch pkg install extra
-        errorif($error > 0, "Failed to download/ install the latest 'extra' package. Try by yourself again: <pkg install extra>.")
+        
+        string failmsg = sprintf("Failed to download/install the latest 'extra' package.\n")
+        failmsg ~= "Try by yourself again: <pkg install extra>."
+        errorif($error > 0, failmsg)
     endif
+    
 end function
 
 
@@ -27,9 +33,11 @@ function void set_grid_dimension (scalar *n_rows,
 
     if n_rows * n_cols > 0
         if N > (n_rows * n_cols)	# fully manual spec
-            funcerr sprintf("The specified grid (%d by %d) is insufficient for the number of\nsub-plots to plot (%d).", n_rows, n_cols, N)
+            funcerr sprintf("Specified grid (%d by %d) insufficient for the number of\nsub-plots to plot (%d).", \
+              n_rows, n_cols, N)
         elif N < (n_rows * n_cols)
-            funcerr sprintf("The specified grid (%d by %d) exceeds the number of\nsub-plots to plot (%d).", n_rows, n_cols, N)
+            funcerr sprintf("Specified grid (%d by %d) exceeds number of\nsub-plots to plot (%d).", \
+              n_rows, n_cols, N)
         endif
     elif n_rows && !n_cols
         n_cols = ceil(N / n_rows)
@@ -70,7 +78,8 @@ function void set_canvas (const string terminal,
     scalar factor = 1
     factor = (terminal == "pdfcairo" || terminal == "epscairo") ? 100 : factor
 
-    printf "set term %s font ',%d' size %d,%d\n", terminal, options.FONT_SIZE, options.PLOT_WIDTH / factor, options.PLOT_HEIGHT / factor
+    printf "set term %s font ',%d' size %d,%d\n", terminal, options.FONT_SIZE, \
+      options.PLOT_WIDTH / factor, options.PLOT_HEIGHT / factor
 end function
 
 
@@ -94,14 +103,16 @@ end function
 
 
 function strings get_file_contents (const strings files_input)
-/* Retrieve content of input gnuplot files. We also check whether files actually exist.
+    /* Retrieve content of input gnuplot files. We also check whether files 
+    actually exist.
     return: strings, Array including code. */
 
     strings codes = array(0)
 
-    loop i=1..nelem(files_input) --quiet
+    loop i = 1..nelem(files_input)
         catch string content = readfile(files_input[i])
-        errorif($error, sprintf("\nError: file '%s' does not exist.\n", files_input[i]))
+        errorif($error, sprintf("\nError: file '%s' does not exist.\n", \
+          files_input[i]))
         codes += content
     endloop
 
@@ -111,7 +122,7 @@ end function
 function void print_codes (const strings codes)
     /* Write code of separate plots, and write content to common gnuplot file. */
 
-    loop i=1..nelem(codes) --quiet
+    loop i = 1..nelem(codes) 
         printf "%s\n", codes[i]
         printf "reset\n"  # reset to default values after each plot
     endloop
@@ -127,13 +138,14 @@ function string set_terminal (const string file_type)
                     "eps", "epscairo",\
                     "svg", "svg")
 
-    errorif(!inbundle(TYPES, file_type), sprintf("Error: Requested terminal '%s' is not supported.", file_type))
+    errorif(!inbundle(TYPES, file_type), \
+      sprintf("Error: Requested terminal '%s' is not supported.", file_type))
 
     return TYPES[file_type]
 end function
 
 
-function string multiplot (const strings files_input "Input file paths/names",
+function string multiplot (const strings files_input "Input file paths/names (or directly gnuplot commands)",
                            string file_output[null] "Full output file path/name",
                            int n_rows[0::0] "Number of rows in plot grid",
                            int n_cols[0::0] "Number of cols in plot grid",
@@ -143,27 +155,56 @@ function string multiplot (const strings files_input "Input file paths/names",
 
     check_os_and_gretl_version()
     check_version_of_extra_package()
+    
+    if exists(options)
+        options = options + get_default_parameters()
+    else
+        bundle options = get_default_parameters()
+    endif
+    
+    # v0.3: Determine whether files_input contains just the file names / paths,
+    #  or already the actual gnuplot command contents.
+    #  Our heuristic is to check for line breaks in the strings, as those should 
+    #  not occur in file names.
+    #  Alternatively, the user can force interpretation with the new flag
+    #  'notempfiles=TRUE' in the options bundle.
+    
+    # check for explicit user spec
+    if inbundle(options, "notempfiles")
+        scalar notempfiles = options.notempfiles 
+    else	# or use heuristic (multi_instrings also from extra)
+        scalar notempfiles = nelem(multi_instrings(files_input, sprintf("\n"))) > 0
+    endif
+    
+    # get gnuplot code accordingly      
+    strings codes = notempfiles ? files_inputs : get_file_contents(files_input)
 
-    strings codes = get_file_contents(files_input)
-
-    # Initializations
+    # more initializations
     if file_output == "display"
         string file_type = "png"
-    elif !exists(file_output) || (exists(file_output) && !strlen(file_output))
+    elif !exists(file_output) || file_output == ""
         string file_output = "display"
         string file_type = "png"
     else
         string file_type = splitfname(file_output)[3]
     endif
-    if exists(options)
-        bundle options = options + get_default_parameters()
-    else
-        bundle options = get_default_parameters()
-    endif
-
+    
     string terminal = set_terminal(file_type)
     set_grid_dimension(&n_rows, &n_cols, nelem(codes))
-    string file_tmp = compile_and_write_joint_code(terminal, codes, n_rows, n_cols, options)
+    
+    # FIXME: this still writes the resulting gnuplot code into a temp file,
+    # even when we're not using temp files for input. Is that OK?
+    # If not, then we need to use outfile --buffer=... in 
+    # compile_and_write_joint_code, but we're facing the problem that the 
+    # 'gnuplot' cmd doesn't accept an input buffer string, AFAIK. 
+    # Or is it actually possible to use the literal mechanism in 
+    # gretl for that? Like: 
+    # gnuplot --output="@file_output" { @myinputbuffer }
+    # (Perhaps replacing linebreaks inside myinputbuffer with semicolons?) 
+    
+    # The real action is starting here
+    string file_tmp = compile_and_write_joint_code(terminal, codes, \
+      n_rows, n_cols, options)
 
     gnuplot --input="@file_tmp" --output="@file_output"
 
