@@ -10,7 +10,8 @@ PUBLIC FUNCTION:
 Function:       multiplot(const strings files_input, const string file_output,
                 int n_rows, int n_cols, bundle options)
 Arguments:
-files_input:    strings - Array of filenames each referring to a gnuplot file
+files_input:    strings - Array of filenames each referring to a gnuplot file;
+                or alternatively array of gnuplot command text strings
 file_output:    string - Full output file path for storing compiled plot
                 (optional, default null implies "display")
 n_rows:         int - Number of rows of the multiplot grid (optional; if 0 or
@@ -39,7 +40,7 @@ FONT_SIZE:   12
 
 
 Changelog:
-- v0.3, December 2022: (work in progress) accept the direct input of gnuplot 
+- v0.3, January 2023: (work in progress) accept the direct input of gnuplot 
     command file contents in the strings array instead of the names of 
     temporary files; various small other edits
 - v0.2, August 2020:
