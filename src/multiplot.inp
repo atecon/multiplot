@@ -1,8 +1,7 @@
 function void check_os_and_gretl_version (void)
     /* Check for installed OS and gretl version. */
 
-    errorif( ($sysinfo.os == "windows" || $sysinfo.os == "osx") \
-      && $version < 20202, \
+    errorif( ($sysinfo.os == "windows" || $sysinfo.os == "osx") && $version < 20202, \
       "Due to issues with older gnuplot versions please install a newer gretl release.")
     # (Since gretl 2022a sysinfo.os says "macos" for MacOS, but since here
     #  only older gretl versions are relevant, using "osx" is fine.)      
@@ -15,11 +14,11 @@ function void check_version_of_extra_package (void)
     pkg query extra --quiet
     if $result.version < 0.6
         printf "\nInfo: At least version 0.6 of the 'extra' package must be installed.\n"
-        print "Start downloading the latest 'extras' package."
+        print "Start downloading the latest 'extra' package."
         catch pkg install extra
         
-        string failmsg = sprintf("Failed to download/install the latest 'extra' package.\n")
-        failmsg ~= "Try by yourself again: <pkg install extra>."
+        string failmsg = sprintf("Failed to download/install the latest 'extra' package.\n" ~ \
+          "Try by yourself again: <pkg install extra>.")
         errorif($error > 0, failmsg)
     endif
     
@@ -33,11 +32,11 @@ function void set_grid_dimension (scalar *n_rows,
 
     if n_rows * n_cols > 0
         if N > (n_rows * n_cols)	# fully manual spec
-            funcerr sprintf("Specified grid (%d by %d) insufficient for the number of\nsub-plots to plot (%d).", \
-              n_rows, n_cols, N)
+            funcerr sprintf("Specified grid (%d by %d) insufficient for the number of\n" ~ \
+              "sub-plots to plot (%d).", n_rows, n_cols, N)
         elif N < (n_rows * n_cols)
-            funcerr sprintf("Specified grid (%d by %d) exceeds number of\nsub-plots to plot (%d).", \
-              n_rows, n_cols, N)
+            funcerr sprintf("Specified grid (%d by %d) exceeds number of\n" ~ \
+              "sub-plots to plot (%d).", n_rows, n_cols, N)
         endif
     elif n_rows && !n_cols
         n_cols = ceil(N / n_rows)
@@ -145,7 +144,8 @@ function string set_terminal (const string file_type)
 end function
 
 
-function string multiplot (const strings files_input "Input file paths/names (or directly gnuplot commands)",
+function string multiplot (const strings files_input \
+                             "Input file paths/names (or directly gnuplot commands)",
                            string file_output[null] "Full output file path/name",
                            int n_rows[0::0] "Number of rows in plot grid",
                            int n_cols[0::0] "Number of cols in plot grid",
@@ -172,8 +172,8 @@ function string multiplot (const strings files_input "Input file paths/names (or
     # check for explicit user spec
     if inbundle(options, "notempfiles")
         scalar notempfiles = options.notempfiles 
-    else	# or use heuristic (multi_instrings also from extra)
-        scalar notempfiles = nelem(multi_instrings(files_input, sprintf("\n"))) > 0
+    else	# or use heuristic, a single newline (\n) suffices
+        scalar notempfiles = nlines(flatten(files_input, TRUE))
     endif
     
     # get gnuplot code accordingly      
