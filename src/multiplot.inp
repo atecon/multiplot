@@ -177,17 +177,13 @@ function string multiplot (const strings files_input \
     endif
     
     # get gnuplot code accordingly      
-    strings codes = notempfiles ? files_inputs : get_file_contents(files_input)
+    strings codes = notempfiles ? files_input : get_file_contents(files_input)
 
-    # more initializations
-    if file_output == "display"
-        string file_type = "png"
-    elif !exists(file_output) || file_output == ""
-        string file_output = "display"
-        string file_type = "png"
-    else
-        string file_type = splitfname(file_output)[3]
-    endif
+    # more initializations (display is default)
+    string file_output = !exists(file_output) ? "display" : \
+      (file_output == "" ? "display" :  file_output) 
+    
+    string file_type = file_output == "display" ? "png" : splitfname(file_output)[3]
     
     string terminal = set_terminal(file_type)
     set_grid_dimension(&n_rows, &n_cols, nelem(codes))

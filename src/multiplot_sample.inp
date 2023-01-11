@@ -5,9 +5,10 @@ open denmark -q
 include multiplot.gfn
 
 # Select an example case
-scalar CASE = 1
+CASE = 1
+
 # Fine tune the graph if wished
-bundle options = defbundle("FONT_SIZE", 10, "PLOT_HEIGHT", 700)
+bundle options = _(FONT_SIZE=10, PLOT_HEIGHT=700)
 
 
 if CASE == 1
@@ -25,14 +26,17 @@ elif CASE == 2
 elif CASE == 3
     qqplot LRM --output=tf1.gp
     qqplot LRY --output=tf2.gp
-    gnuplot IBO --output=tf3.gp --time-series --with-lines { set title "foo" ; set grid ; }
+    gnuplot IBO --output=tf3.gp --time-series --with-lines \
+      { set title "foo" ; set grid ; }
     gnuplot IDE --output=tf4.gp --time-series --with-lines
 elif CASE == 4						# qqplot FAILS
-    gnuplot IBO --output=tf1.gp --time-series --with-lines { set title "foo" ; set yrange[-10:10]; \
-      set ylabel "ylabel"; }
-    gnuplot IDE --output=tf2.gp --time-series --with-lines { set title "foo" ; set xlabel "xlabel"; }
+    gnuplot IBO --output=tf1.gp --time-series --with-lines \
+      { set title "foo" ; set yrange[-10:10];  set ylabel "ylabel"; }
+    gnuplot IDE --output=tf2.gp --time-series --with-lines \
+      { set title "foo" ; set xlabel "xlabel"; }
     qqplot IBO --output=tf3.gp
     freq IDE --plot=tf4.gp
+ 
 endif
 
 
@@ -41,18 +45,31 @@ string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "display", , , options)
 
 # Automatic grid determination + pdf output
-string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "my.pdf", , , options)
 # print Gin               # uncomment for printing gnuplot command
 
 # Multiplot with 1 row + svg output
-string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "my.svg", 1, , options)
 
 # Multiplot with 4 rows + png output
-string Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
+Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "foo.png", 4, , options)
 
 # Automatic grid determination + eps output
 Gin = multiplot(defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp"),\
   "my.eps", , , options)
+
+# Test the new feature from version 0.3
+# which requires gretl functionality from 2023
+if $version > 20222
+    string a,b,c,d
+    qqplot LRM --buffer=a
+    qqplot LRY --buffer=b
+    qqplot IBO --buffer=c
+    qqplot IDE --buffer=d
+    multiplot(defarray(a,b,c,d),,,, options)   
+endif
+
+     

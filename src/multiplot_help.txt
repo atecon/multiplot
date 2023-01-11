@@ -1,8 +1,10 @@
-This package compiles a multiplot graph comprising multiple sub plots.
+This package compiles a multiplot graph comprising multiple subplots. The
+subplots can be produced with various plotting commands in gretl, which are
+all based on the gnuplot program. 
 
 Please ask questions and report bugs on the gretl mailing list if possible.
-Alternatively, create an issue ticket on the github repo (see below). Source
-code and test scripts can be found here: https://github.com/atecon/multiplot
+Alternatively, create an issue ticket on the github repo. Source code and test
+scripts can also be found there: https://github.com/atecon/multiplot
 
 
 PUBLIC FUNCTION:
@@ -40,9 +42,11 @@ FONT_SIZE:   12
 
 
 Changelog:
-- v0.3, January 2023: (work in progress) accept the direct input of gnuplot 
-    command file contents in the strings array instead of the names of 
-    temporary files; various small other edits
+- v0.3, January 2023: 
+    + Accept the direct input of gnuplot command file contents in the strings
+      array instead of the names of temporary files.
+    + Require gretl 2021a because of modern internal bundle syntax.
+    + various small other edits
 - v0.2, August 2020:
     + Bug fix: "display" mode did not work as no terminal was set in this case.
     + Bug fix: Missing argument for sprintf() function call in case no
