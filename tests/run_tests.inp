@@ -231,26 +231,24 @@ string fname = sprintf("some command\\n\ foo\n")
 Params = Params + _(input = defarray(fname),
                     opts = _(dummy = 0), expected = FALSE)
 
-function void test_only_filenames (const bundles P)
-    print "Start testing function only_filenames()"
+function void test_includes_only_filenames (const bundles P)
+    print "Start testing function includes_only_filenames()"
 
     loop foreach i P
-        print i
         # Given + When
-        scalar actual = only_filenames(P[i].input, P[i].opts)
+        scalar actual = includes_only_filenames(P[i].input, P[i].opts)
 
         # Then
-        print actual
         assert(actual == P[i].expected)
     endloop
 end function
-test_only_filenames(Params)
+test_includes_only_filenames(Params)
 
 
 bundles Params = null
 Params = Params + _(filename = "display", expected = "png")
 Params = Params + _(filename = "", expected = "png")
-Params = Params + _(filename = "foo.pdf", expected = "foo")
+Params = Params + _(filename = "foo.pdf", expected = "pdf")
 
 function void test_get_filetype_output (const bundles P)
     print "Start testing function get_filetype_output()."
@@ -258,10 +256,8 @@ function void test_get_filetype_output (const bundles P)
     loop foreach i P
         # Given + When
         string actual = get_filetype_output(P[i].filename)
-        actual
 
         # Then
-        eval P[i].expected
         assert(actual == P[i].expected)
     endloop
 end function

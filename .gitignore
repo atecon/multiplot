@@ -1,3 +1,7 @@
 session.inp
 string_table.txt
 *.gp
+*.png
+*.eps
+*.pdf
+*.svg

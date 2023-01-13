@@ -1,8 +1,7 @@
 function void check_os_and_gretl_version (void)
     /* Check for installed OS and gretl version. */
 
-    errorif( ($sysinfo.os == "windows" || $sysinfo.os == "osx") \
-      && $version < 20202, \
+    errorif( ($sysinfo.os == "windows" || $sysinfo.os == "osx") && $version < 20202, \
       "Due to issues with older gnuplot versions please install a newer gretl release.")
     # (Since gretl 2022a sysinfo.os says "macos" for MacOS, but since here
     #  only older gretl versions are relevant, using "osx" is fine.)      
@@ -15,11 +14,11 @@ function void check_version_of_extra_package (void)
     pkg query extra --quiet
     if $result.version < 0.6
         printf "\nInfo: At least version 0.6 of the 'extra' package must be installed.\n"
-        print "Start downloading the latest 'extras' package."
+        print "Start downloading the latest 'extra' package."
         catch pkg install extra
         
-        string failmsg = sprintf("Failed to download/install the latest 'extra' package.\n")
-        failmsg ~= "Try by yourself again: <pkg install extra>."
+        string failmsg = sprintf("Failed to download/install the latest 'extra' package.\n" ~ \
+          "Try by yourself again: <pkg install extra>.")
         errorif($error > 0, failmsg)
     endif
     
@@ -33,11 +32,11 @@ function void set_grid_dimension (scalar *n_rows,
 
     if n_rows * n_cols > 0
         if N > (n_rows * n_cols)	# fully manual spec
-            funcerr sprintf("Specified grid (%d by %d) insufficient for the number of\nsub-plots to plot (%d).", \
-              n_rows, n_cols, N)
+            funcerr sprintf("Specified grid (%d by %d) insufficient for the number of\n" ~ \
+              "sub-plots to plot (%d).", n_rows, n_cols, N)
         elif N < (n_rows * n_cols)
-            funcerr sprintf("Specified grid (%d by %d) exceeds number of\nsub-plots to plot (%d).", \
-              n_rows, n_cols, N)
+            funcerr sprintf("Specified grid (%d by %d) exceeds number of\n" ~ \
+              "sub-plots to plot (%d).", n_rows, n_cols, N)
         endif
     elif n_rows && !n_cols
         n_cols = ceil(N / n_rows)
@@ -103,17 +102,17 @@ function string compile_and_write_joint_code (const string terminal,
 end function
 
 
-function strings get_file_contents (const strings files_input)
+function strings get_file_contents (const strings input_data)
     /* Retrieve content of input gnuplot files. We also check whether files 
     actually exist.
     return: strings, Array including code. */
 
     strings codes = array(0)
 
-    loop i = 1..nelem(files_input)
-        catch string content = readfile(files_input[i])
+    loop i = 1..nelem(input_data)
+        catch string content = readfile(input_data[i])
         errorif($error, sprintf("\nError: file '%s' does not exist.\n", \
-          files_input[i]))
+          input_data[i]))
         codes += content
     endloop
 
@@ -146,24 +145,9 @@ function string set_terminal (const string file_type)
 end function
 
 
-function scalar max_nlines (const strings input)
-    /* code description
-    return: type, description */
-
-    scalar nmax = 0
-
-    loop foreach i input
-        scalar n = nlines("$i")
-        nmax = n > nmax ? n : nmax
-    endloop
-
-    return nmax
-end function
-
-
-function scalar only_filenames (const strings files_input,
-                                const bundle options)
-    /* Determine whether files_input contains just the file names / paths,
+function scalar includes_only_filenames (const strings input_data,
+                                         const bundle options)
+    /* Determine whether input_data contains just the file names / paths,
         or already the actual gnuplot command contents. Our heuristic is to
         check for line breaks in the strings, as those should not occur in
         file names.
@@ -174,9 +158,8 @@ function scalar only_filenames (const strings files_input,
     if inbundle(options, "only_input_files")
         return options.only_input_files
     else
-        scalar n = max_nlines(files_input) > 0 ? FALSE : TRUE
-        printf "N lines = %d\n", n
-        return n
+        scalar n = nlines(flatten(input_data, TRUE))
+        return n == 0 ? TRUE : FALSE
     endif
 end function
 
@@ -192,13 +175,13 @@ function string get_filetype_output (const string filename)
 end function
 
 
-function string multiplot (const strings files_input,
+function string multiplot (const strings input_data,
                            string file_output[null],
                            int n_rows[0::0] "Number of rows in plot grid",
                            int n_cols[0::0] "Number of cols in plot grid",
                            bundle options[null])
     /* Main public function.
-    files_input: Input file paths/names or directly gnuplot commands
+    input_data: Input file paths/names or directly gnuplot commands
     file_output: Full output file path/name
     return: String containing the gnuplot plot code. */
 
@@ -210,15 +193,15 @@ function string multiplot (const strings files_input,
     else
         bundle options = get_default_parameters()
     endif
-    
-    scalar only_input_files = only_filenames(files_input, options)
-    strings codes = only_input_files == TRUE ? files_inputs : \
-                    get_file_contents(files_input)
+
+    scalar only_input_files = includes_only_filenames(input_data, options)
+    strings codes = only_input_files == TRUE ? get_file_contents(input_data) \
+                    : input_data
     string file_output = !exists(file_output) ? "display" : file_output
     string file_type = get_filetype_output(file_output)
     string terminal = set_terminal(file_type)
     set_grid_dimension(&n_rows, &n_cols, nelem(codes))
-    
+
     # FIXME: this still writes the resulting gnuplot code into a temp file,
     # even when we're not using temp files for input. Is that OK?
     # If not, then we need to use outfile --buffer=... in 
@@ -231,7 +214,6 @@ function string multiplot (const strings files_input,
     
     string file_tmp = compile_and_write_joint_code(terminal, codes,
                                                    n_rows, n_cols, options)
-
     gnuplot --input="@file_tmp" --output="@file_output"
 
     return readfile(file_tmp)
