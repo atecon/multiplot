@@ -1,5 +1,6 @@
 set verbose off
 clear
+set assert stop
 
 include "./src/multiplot.inp" --force
 include assertion.gfn
@@ -63,10 +64,11 @@ function void test_get_default_parameters (void)
     print "Start get_default_parameters()."
 
     bundle B = get_default_parameters()
-    assert_equal_num(nelem(B), 3)
-    assert_equal_num(B.PLOT_WIDTH, 800)
-    assert_equal_num(B.PLOT_HEIGHT, 600)
-    assert_equal_num(B.FONT_SIZE, 12)
+    assert(nelem(B) == 4)
+    assert(B.PLOT_WIDTH == 800)
+    assert(B.PLOT_HEIGHT == 600)
+    assert(B.FONT_SIZE == 12)
+    assert(B.file_output == "")
 end function
 test_get_default_parameters()
 
@@ -215,6 +217,55 @@ function void test_compile_and_write_joint_c (void)
 end function
 test_compile_and_write_joint_c()
 
+
+
+bundles Params = null
+Params = Params + _(input = defarray("foo1.png", "foo2.png"),
+                    opts = _(only_input_files = TRUE), expected = TRUE)
+Params = Params + _(input = defarray("foo1.png", "foo2.png"),
+                    opts = _(only_input_files = FALSE), expected = FALSE)
+Params = Params + _(input = defarray("foo1.png", "foo2.png"),
+                    opts = _(dummy = 0), expected = TRUE)
+
+string fname = sprintf("some command\\n\ foo\n")
+Params = Params + _(input = defarray(fname),
+                    opts = _(dummy = 0), expected = FALSE)
+
+function void test_only_filenames (const bundles P)
+    print "Start testing function only_filenames()"
+
+    loop foreach i P
+        print i
+        # Given + When
+        scalar actual = only_filenames(P[i].input, P[i].opts)
+
+        # Then
+        print actual
+        assert(actual == P[i].expected)
+    endloop
+end function
+test_only_filenames(Params)
+
+
+bundles Params = null
+Params = Params + _(filename = "display", expected = "png")
+Params = Params + _(filename = "", expected = "png")
+Params = Params + _(filename = "foo.pdf", expected = "foo")
+
+function void test_get_filetype_output (const bundles P)
+    print "Start testing function get_filetype_output()."
+
+    loop foreach i P
+        # Given + When
+        string actual = get_filetype_output(P[i].filename)
+        actual
+
+        # Then
+        eval P[i].expected
+        assert(actual == P[i].expected)
+    endloop
+end function
+test_get_filetype_output(Params)
 
 
 
