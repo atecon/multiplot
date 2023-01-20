@@ -36,6 +36,14 @@ elif CASE == 4						# qqplot FAILS
       { set title "foo" ; set xlabel "xlabel"; }
     qqplot IBO --output=tf3.gp
     freq IDE --plot=tf4.gp
+elif CASE == 5
+    var 2 LRM LRY --silent
+    matrix irf_11 = irf(1, 1, 0.1)
+    matrix irf_12 = irf(1, 2, 0.1)
+    gnuplot 1 2 3 --matrix=irf_11 --time-series --with-lines --output=irf_11.gp
+    gnuplot 1 2 3 --matrix=irf_12 --time-series --with-lines --single-yaxis --output=irf_12.gp
+    strings filenames = defarray("irf_11.gp","irf_12.gp")
+    multiplot(filenames, "display")
 endif
 
 
