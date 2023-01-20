@@ -49,7 +49,8 @@ PLOT_HEIGHT:        Height of the plot. Default: 600 (pixels)
 FONT_SIZE:          Font size. Default: 12 pt
 only_input_files:   Boolean switch which should be set to TRUE if argument
                     input_data only contains filenames and no gnuplot command
-                    strings, otherwise FALSE. Default: TRUE
+                    strings, otherwise FALSE. (Optional; if absent, an automatic
+                    detection is applied.)
 -----------------------------
 
 
@@ -75,7 +76,7 @@ extra </depends>
 <gretl-function name="multiplot" type="string">
  <params count="5">
   <param name="input_data" type="strings" const="true">
-<description>Filennames or gnuplot commands</description>
+<description>Filenames or gnuplot commands</description>
   </param>
   <param name="file_output" type="string" optional="true">
 <description>Filename of compiled plot (optional)</description>
