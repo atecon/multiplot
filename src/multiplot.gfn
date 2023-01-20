@@ -1,48 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gretl-functions>
-<gretl-function-package name="multiplot" no-data-ok="true" minver="2020b">
+<gretl-function-package name="multiplot" no-data-ok="true" minver="2021a">
 <author email="atecon@posteo.de">Sven Schreiber and Artur Tarassow</author>
-<version>0.2</version>
-<date>2020-08-15</date>
+<version>0.3</version>
+<date>2023-01-20</date>
 <description>Combine multiple plots to a single graph</description>
 <tags>C88</tags>
 <help>
-This package compiles a multiplot graph comprising multiple sub plots.
+This package compiles a multiplot graph comprising multiple subplots. The
+subplots can be produced with various plotting commands in gretl, which are
+all based on the gnuplot program. 
 
-Please ask questions and report bugs on the gretl mailing list if possible. Alternatively, create an issue ticket on the github repo (see below). Source code and test script(s) can be found here: https://github.com/atecon/multiplot
+Please ask questions and report bugs on the gretl mailing list if possible.
+Alternatively, create an issue ticket on the github repo. Source code and test
+scripts can also be found there: https://github.com/atecon/multiplot
 
 
 PUBLIC FUNCTION:
------------------------------------------------------------------------
-Function:       multiplot(const strings files_input, const string file_output,
+------------------------------------------------------------------------------
+Function:       multiplot(const strings input_data, const string file_output,
                 int n_rows, int n_cols, bundle options)
 Arguments:
-files_input:    strings, Array of filenames each referring to a gnuplot file
-file_output:    string, Full output file path for storing compiled plot
-                (optional, default '0')
-n_rows:         int, Number of rows of the multiplot grid; if zero determined
-                (optional) by the number of columns chosen.
-n_cols:         int, Number of columns of the multiplot grid (optional,
-                default '0'); if zero determined by the number of rows chosen.
-options:        bundle, Parameters for fine-tuning the plot (optional,
+input_data:     strings - Array of filenames each referring to a gnuplot file;
+                or alternatively array of gnuplot command text strings
+file_output:    string - Full output file path for storing compiled plot
+                (optional, default null implies &quot;display&quot;)
+n_rows:         int - Number of rows of the multiplot grid (optional; if 0 or
+                omitted, it is determined by the number of columns chosen)
+n_cols:         int - Number of columns of the multiplot grid (optional; if 0
+                or omitted, it is determined by the number of rows chosen)
+options:        bundle - Parameters for fine-tuning the plot (optional,
                 see below for default values)
 
-Return:
-String variable including the gnuplot command. Plots are stored if 'file_output' is specified.
------------------------------------------------------------------------
+Return value:
+String variable containing the gnuplot commands. Plots are stored to disc if
+'file_output' is specified.
+------------------------------------------------------------------------------
 
 
 Optional parameters
----------------------------
-The user can pass an optional bundle ('options') as the fifth argument for fine-tuning the multiplot. The following parameters are currently supported and their default values are:
+-----------------------------
+The user can pass an optional bundle ('options') as the fifth argument; mainly
+for fine-tuning the multiplot. The following parameters are currently supported
+and their default values are:
 
-PLOT_WIDTH: default: 800 (pixels)
-PLOT_HEIGHT: 600 (pixels)
-FONT_SIZE = 12
-----------------------------
+PLOT_WIDTH:         Width of the plot. Default: 800 (pixels)
+PLOT_HEIGHT:        Height of the plot. Default: 600 (pixels)
+FONT_SIZE:          Font size. Default: 12 pt
+only_input_files:   Boolean switch which should be set to TRUE if argument
+                    input_data only contains filenames and no gnuplot command
+                    strings, otherwise FALSE. (Optional; if absent, an automatic
+                    detection is applied.)
+-----------------------------
 
 
 Changelog:
+- v0.3, January 2023: 
+    + Accept the direct input of gnuplot command file contents in the strings
+      array instead of the names of temporary files.
+    + Require gretl 2021a because of modern internal bundle syntax.
+    + Various small other edits
 - v0.2, August 2020:
     + Bug fix: &quot;display&quot; mode did not work as no terminal was set in this case.
     + Bug fix: Missing argument for sprintf() function call in case no
@@ -58,11 +75,11 @@ Changelog:
 extra </depends>
 <gretl-function name="multiplot" type="string">
  <params count="5">
-  <param name="files_input" type="strings" const="true">
-<description>Input file paths/names</description>
+  <param name="input_data" type="strings" const="true">
+<description>Filenames or gnuplot commands</description>
   </param>
   <param name="file_output" type="string" optional="true">
-<description>Full output file path/name</description>
+<description>Filename of compiled plot (optional)</description>
   </param>
   <param name="n_rows" type="int" min="0" default="0">
 <description>Number of rows in plot grid</description>
@@ -73,45 +90,44 @@ extra </depends>
   <param name="options" type="bundle" optional="true"/>
  </params>
 <code>/* Main public function.
+input_data: Input file paths/names or directly gnuplot commands
+file_output: Full output file path/name
 return: String containing the gnuplot plot code. */
-check_os_and_gretl_version()
 check_version_of_extra_package()
-strings codes = get_file_contents(files_input)
-# Initializations
-if file_output == &quot;display&quot;
-  string file_type = &quot;png&quot;
-elif !exists(file_output) || (exists(file_output) &amp;&amp; !strlen(file_output))
-  string file_output = &quot;display&quot;
-  string file_type = &quot;png&quot;
-else
-  string file_type = splitfname(file_output)[3]
-endif
 if exists(options)
-  bundle options = options + get_default_parameters()
+  options = options + get_default_parameters()
 else
   bundle options = get_default_parameters()
 endif
+scalar only_input_files = includes_only_filenames(input_data, options)
+strings codes = only_input_files == TRUE ? get_file_contents(input_data) : input_data
+string file_output = !exists(file_output) ? &quot;display&quot; : file_output
+string file_type = get_filetype_output(file_output)
 string terminal = set_terminal(file_type)
 set_grid_dimension(&amp;n_rows, &amp;n_cols, nelem(codes))
+# FIXME: this still writes the resulting gnuplot code into a temp file,
+# even when we're not using temp files for input. Is that OK?
+# If not, then we need to use outfile --buffer=... in
+# compile_and_write_joint_code, but we're facing the problem that the
+# 'gnuplot' cmd doesn't accept an input buffer string, AFAIK.
+# Or is it actually possible to use the literal mechanism in
+# gretl for that? Like:
+# gnuplot --output=&quot;@file_output&quot; { @myinputbuffer }
+# (Perhaps replacing linebreaks inside myinputbuffer with semicolons?)
 string file_tmp = compile_and_write_joint_code(terminal, codes, n_rows, n_cols, options)
 gnuplot --input=&quot;@file_tmp&quot; --output=&quot;@file_output&quot;
 return readfile(file_tmp)
-</code>
-</gretl-function>
-<gretl-function name="check_os_and_gretl_version" type="void" private="1">
-<code>/* Check for installed OS and gretl version. */
-if ($sysinfo.os == &quot;windows&quot; || $sysinfo.os == &quot;osx&quot;) &amp;&amp; $version &lt; 20202
-  funcerr sprintf(&quot;Due to some issue with gnuplot version 5.2.4 on your\n             system you should install the current snapshot.&quot;)
-endif
 </code>
 </gretl-function>
 <gretl-function name="check_version_of_extra_package" type="void" private="1">
 <code>/* Need the splitfname() function from the 'extra' package. */
 pkg query extra --quiet
 if $result.version &lt; 0.6
-  printf &quot;\nInfo: At least version 0.6 of the 'extra' package must be installed.\nStart downloading the latest 'extras' package.&quot;
+  printf &quot;\nInfo: At least version 0.6 of the 'extra' package must be installed.\n&quot;
+  print &quot;Start downloading the latest 'extra' package.&quot;
   catch pkg install extra
-  errorif($error &gt; 0, &quot;Failed to download/ install the latest 'extra' package. Try by yourself again: &lt;pkg install extra&gt;.&quot;)
+  string failmsg = sprintf(&quot;Failed to download/install the latest 'extra' package.\n&quot; ~ &quot;Try by yourself again: &lt;pkg install extra&gt;.&quot;)
+  errorif($error &gt; 0, failmsg)
 endif
 </code>
 </gretl-function>
@@ -124,9 +140,9 @@ endif
 <code>/* Set number of rows and columns for grid. */
 if n_rows * n_cols &gt; 0
   if N &gt; (n_rows * n_cols)	# fully manual spec
-    funcerr sprintf(&quot;The specified grid (%d by %d) is insufficient for the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N)
+    funcerr sprintf(&quot;Specified grid (%d by %d) insufficient for the number of\n&quot; ~ &quot;sub-plots to plot (%d).&quot;, n_rows, n_cols, N)
   elif N &lt; (n_rows * n_cols)
-    funcerr sprintf(&quot;The specified grid (%d by %d) exceeds the number of\nsub-plots to plot (%d).&quot;, n_rows, n_cols, N)
+    funcerr sprintf(&quot;Specified grid (%d by %d) exceeds number of\n&quot; ~ &quot;sub-plots to plot (%d).&quot;, n_rows, n_cols, N)
   endif
 elif n_rows &amp;&amp; !n_cols
   n_cols = ceil(N / n_rows)
@@ -140,7 +156,7 @@ endif
 </gretl-function>
 <gretl-function name="get_default_parameters" type="bundle" private="1">
 <code>/* Set default plotting parameters here. */
-return defbundle( &quot;PLOT_WIDTH&quot;, 800, &quot;PLOT_HEIGHT&quot;, 600, &quot;FONT_SIZE&quot;, 12)
+return defbundle( &quot;PLOT_WIDTH&quot;, 800, &quot;PLOT_HEIGHT&quot;, 600, &quot;FONT_SIZE&quot;, 12, &quot;file_output&quot;, &quot;&quot;)
 </code>
 </gretl-function>
 <gretl-function name="write_terminal_and_mplot_dims" type="void" private="1">
@@ -187,14 +203,15 @@ return file_tmp
 </gretl-function>
 <gretl-function name="get_file_contents" type="strings" private="1">
  <params count="1">
-  <param name="files_input" type="strings" const="true"/>
+  <param name="input_data" type="strings" const="true"/>
  </params>
-<code>/* Retrieve content of input gnuplot files. We also check whether files actually exist.
+<code>/* Retrieve content of input gnuplot files. We also check whether files
+actually exist.
 return: strings, Array including code. */
 strings codes = array(0)
-loop i=1..nelem(files_input) --quiet
-  catch string content = readfile(files_input[i])
-  errorif($error, sprintf(&quot;\nError: file '%s' does not exist.\n&quot;, files_input[i]))
+loop i = 1..nelem(input_data)
+  catch string content = readfile(input_data[i])
+  errorif($error, sprintf(&quot;\nError: file '%s' does not exist.\n&quot;, input_data[i]))
   codes += content
 endloop
 return codes
@@ -205,7 +222,7 @@ return codes
   <param name="codes" type="strings" const="true"/>
  </params>
 <code>/* Write code of separate plots, and write content to common gnuplot file. */
-loop i=1..nelem(codes) --quiet
+loop i = 1..nelem(codes)
   printf &quot;%s\n&quot;, codes[i]
   printf &quot;reset\n&quot;  # reset to default values after each plot
 endloop
@@ -221,6 +238,38 @@ errorif(!inbundle(TYPES, file_type), sprintf(&quot;Error: Requested terminal '%s
 return TYPES[file_type]
 </code>
 </gretl-function>
+<gretl-function name="includes_only_filenames" type="scalar" private="1">
+ <params count="2">
+  <param name="input_data" type="strings" const="true"/>
+  <param name="options" type="bundle" const="true"/>
+ </params>
+<code>/* Determine whether input_data contains just the file names / paths,
+or already the actual gnuplot command contents. Our heuristic is to
+check for line breaks in the strings, as those should not occur in
+file names.
+Alternatively, the user can force interpretation with the new flag
+'only_input_files=TRUE' in the options bundle.
+return: type, description */
+if inbundle(options, &quot;only_input_files&quot;)
+  return options.only_input_files
+else
+  scalar n = nlines(flatten(input_data, TRUE))
+  return n == 0 ? TRUE : FALSE
+endif
+</code>
+</gretl-function>
+<gretl-function name="get_filetype_output" type="string" private="1">
+ <params count="1">
+  <param name="filename" type="string" const="true"/>
+ </params>
+<code>/* Return the datatype of file. */
+if nelem(filename) == 0 || filename == &quot;display&quot;
+  return &quot;png&quot;
+else
+  return splitfname(filename)[3]
+endif
+</code>
+</gretl-function>
 <sample-script>
 clear
 set verbose off
@@ -229,9 +278,10 @@ open denmark -q
 include multiplot.gfn
 
 # Select an example case
-scalar CASE = 1
+CASE = 1
+
 # Fine tune the graph if wished
-bundle options = defbundle(&quot;FONT_SIZE&quot;, 10, &quot;PLOT_HEIGHT&quot;, 700)
+bundle options = _(FONT_SIZE=10, PLOT_HEIGHT=700)
 
 
 if CASE == 1
@@ -249,37 +299,57 @@ elif CASE == 2
 elif CASE == 3
     qqplot LRM --output=tf1.gp
     qqplot LRY --output=tf2.gp
-    gnuplot IBO --output=tf3.gp --time-series --with-lines { set title &quot;foo&quot; ; set grid ; }
+    gnuplot IBO --output=tf3.gp --time-series --with-lines \
+      { set title &quot;foo&quot; ; set grid ; }
     gnuplot IDE --output=tf4.gp --time-series --with-lines
 elif CASE == 4						# qqplot FAILS
-    gnuplot IBO --output=tf1.gp --time-series --with-lines { set title &quot;foo&quot; ; set yrange[-10:10]; \
-      set ylabel &quot;ylabel&quot;; }
-    gnuplot IDE --output=tf2.gp --time-series --with-lines { set title &quot;foo&quot; ; set xlabel &quot;xlabel&quot;; }
+    gnuplot IBO --output=tf1.gp --time-series --with-lines \
+      { set title &quot;foo&quot; ; set yrange[-10:10];  set ylabel &quot;ylabel&quot;; }
+    gnuplot IDE --output=tf2.gp --time-series --with-lines \
+      { set title &quot;foo&quot; ; set xlabel &quot;xlabel&quot;; }
     qqplot IBO --output=tf3.gp
     freq IDE --plot=tf4.gp
+elif CASE == 5
+    var 2 LRM LRY --silent
+    matrix irf_11 = irf(1, 1, 0.1)
+    matrix irf_12 = irf(1, 2, 0.1)
+    gnuplot 1 2 3 --matrix=irf_11 --time-series --with-lines --output=irf_11.gp
+    gnuplot 1 2 3 --matrix=irf_12 --time-series --with-lines --single-yaxis --output=irf_12.gp
+    strings filenames = defarray(&quot;irf_11.gp&quot;,&quot;irf_12.gp&quot;)
+    multiplot(filenames, &quot;display&quot;)
 endif
 
 
+# Collect all filenames into an array
+strings filenames = defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;)
+
 # Automatic grid determination + instant output on screen
-string Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;),\
-  &quot;display&quot;, , , options)
+string Gin = multiplot(filenames, &quot;display&quot;, , , options)
 
 # Automatic grid determination + pdf output
-string Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;),\
-  &quot;my.pdf&quot;, , , options)
+Gin = multiplot(filenames, &quot;my.pdf&quot;, , , options)
 # print Gin               # uncomment for printing gnuplot command
 
 # Multiplot with 1 row + svg output
-string Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;),\
-  &quot;my.svg&quot;, 1, , options)
+Gin = multiplot(filenames, &quot;my.svg&quot;, 1, , options)
 
 # Multiplot with 4 rows + png output
-string Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;),\
-  &quot;foo.png&quot;, 4, , options)
+Gin = multiplot(filenames, &quot;foo.png&quot;, 4, , options)
 
 # Automatic grid determination + eps output
-Gin = multiplot(defarray(&quot;tf1.gp&quot;,&quot;tf2.gp&quot;,&quot;tf3.gp&quot;,&quot;tf4.gp&quot;),\
-  &quot;my.eps&quot;, , , options)
+Gin = multiplot(filenames, &quot;my.eps&quot;, , , options)
+
+
+# Show the new feature from version 0.3
+# which requires gretl functionality from 2023
+if $version &gt; 20222
+    string a,b,c,d
+    qqplot LRM --buffer=a
+    qqplot LRY --buffer=b
+    qqplot IBO --buffer=c
+    qqplot IDE --buffer=d
+    multiplot(defarray(a,b,c,d),,,, options)
+endif
 </sample-script>
 </gretl-function-package>
 </gretl-functions>
