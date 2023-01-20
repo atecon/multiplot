@@ -3,7 +3,7 @@
 <gretl-function-package name="multiplot" no-data-ok="true" minver="2021a">
 <author email="atecon@posteo.de">Sven Schreiber and Artur Tarassow</author>
 <version>0.3</version>
-<date>2023-01-11</date>
+<date>2023-01-20</date>
 <description>Combine multiple plots to a single graph</description>
 <tags>C88</tags>
 <help>
@@ -18,10 +18,10 @@ scripts can also be found there: https://github.com/atecon/multiplot
 
 PUBLIC FUNCTION:
 ------------------------------------------------------------------------------
-Function:       multiplot(const strings files_input, const string file_output,
+Function:       multiplot(const strings input_data, const string file_output,
                 int n_rows, int n_cols, bundle options)
 Arguments:
-files_input:    strings - Array of filenames each referring to a gnuplot file;
+input_data:     strings - Array of filenames each referring to a gnuplot file;
                 or alternatively array of gnuplot command text strings
 file_output:    string - Full output file path for storing compiled plot
                 (optional, default null implies &quot;display&quot;)
@@ -40,13 +40,16 @@ String variable containing the gnuplot commands. Plots are stored to disc if
 
 Optional parameters
 -----------------------------
-The user can pass an optional bundle ('options') as the fifth argument for
-fine-tuning the multiplot. The following parameters are currently supported
+The user can pass an optional bundle ('options') as the fifth argument; mainly
+for fine-tuning the multiplot. The following parameters are currently supported
 and their default values are:
 
-PLOT_WIDTH:  800 (pixels)
-PLOT_HEIGHT: 600 (pixels)
-FONT_SIZE:   12
+PLOT_WIDTH:         Width of the plot. Default: 800 (pixels)
+PLOT_HEIGHT:        Height of the plot. Default: 600 (pixels)
+FONT_SIZE:          Font size. Default: 12 pt
+only_input_files:   Boolean switch which should be set to TRUE if argument
+                    input_data only contains filenames and no gnuplot command
+                    strings, otherwise FALSE. Default: TRUE
 -----------------------------
 
 
@@ -55,7 +58,7 @@ Changelog:
     + Accept the direct input of gnuplot command file contents in the strings
       array instead of the names of temporary files.
     + Require gretl 2021a because of modern internal bundle syntax.
-    + various small other edits
+    + Various small other edits
 - v0.2, August 2020:
     + Bug fix: &quot;display&quot; mode did not work as no terminal was set in this case.
     + Bug fix: Missing argument for sprintf() function call in case no
@@ -71,8 +74,12 @@ Changelog:
 extra </depends>
 <gretl-function name="multiplot" type="string">
  <params count="5">
-  <param name="input_data" type="strings" const="true"/>
-  <param name="file_output" type="string" optional="true"/>
+  <param name="input_data" type="strings" const="true">
+<description>Filennames or gnuplot commands</description>
+  </param>
+  <param name="file_output" type="string" optional="true">
+<description>Filename of compiled plot (optional)</description>
+  </param>
   <param name="n_rows" type="int" min="0" default="0">
 <description>Number of rows in plot grid</description>
   </param>
@@ -85,7 +92,6 @@ extra </depends>
 input_data: Input file paths/names or directly gnuplot commands
 file_output: Full output file path/name
 return: String containing the gnuplot plot code. */
-check_os_and_gretl_version()
 check_version_of_extra_package()
 if exists(options)
   options = options + get_default_parameters()
@@ -110,13 +116,6 @@ set_grid_dimension(&amp;n_rows, &amp;n_cols, nelem(codes))
 string file_tmp = compile_and_write_joint_code(terminal, codes, n_rows, n_cols, options)
 gnuplot --input=&quot;@file_tmp&quot; --output=&quot;@file_output&quot;
 return readfile(file_tmp)
-</code>
-</gretl-function>
-<gretl-function name="check_os_and_gretl_version" type="void" private="1">
-<code>/* Check for installed OS and gretl version. */
-errorif( ($sysinfo.os == &quot;windows&quot; || $sysinfo.os == &quot;osx&quot;) &amp;&amp; $version &lt; 20202, &quot;Due to issues with older gnuplot versions please install a newer gretl release.&quot;)
-# (Since gretl 2022a sysinfo.os says &quot;macos&quot; for MacOS, but since here
-#  only older gretl versions are relevant, using &quot;osx&quot; is fine.)
 </code>
 </gretl-function>
 <gretl-function name="check_version_of_extra_package" type="void" private="1">
@@ -309,6 +308,14 @@ elif CASE == 4						# qqplot FAILS
       { set title &quot;foo&quot; ; set xlabel &quot;xlabel&quot;; }
     qqplot IBO --output=tf3.gp
     freq IDE --plot=tf4.gp
+elif CASE == 5
+    var 2 LRM LRY --silent
+    matrix irf_11 = irf(1, 1, 0.1)
+    matrix irf_12 = irf(1, 2, 0.1)
+    gnuplot 1 2 3 --matrix=irf_11 --time-series --with-lines --output=irf_11.gp
+    gnuplot 1 2 3 --matrix=irf_12 --time-series --with-lines --single-yaxis --output=irf_12.gp
+    strings filenames = defarray(&quot;irf_11.gp&quot;,&quot;irf_12.gp&quot;)
+    multiplot(filenames, &quot;display&quot;)
 endif
 
 
