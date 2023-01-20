@@ -1,13 +1,3 @@
-function void check_os_and_gretl_version (void)
-    /* Check for installed OS and gretl version. */
-
-    errorif( ($sysinfo.os == "windows" || $sysinfo.os == "osx") && $version < 20202, \
-      "Due to issues with older gnuplot versions please install a newer gretl release.")
-    # (Since gretl 2022a sysinfo.os says "macos" for MacOS, but since here
-    #  only older gretl versions are relevant, using "osx" is fine.)      
-end function
-
-
 function void check_version_of_extra_package (void)
     /* Need the splitfname() function from the 'extra' package. */
 
