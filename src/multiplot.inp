@@ -175,7 +175,6 @@ function string multiplot (const strings input_data "Filennames or gnuplot comma
     file_output: Full output file path/name
     return: String containing the gnuplot plot code. */
 
-    check_os_and_gretl_version()
     check_version_of_extra_package()
     
     if exists(options)
