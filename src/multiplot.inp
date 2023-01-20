@@ -165,7 +165,7 @@ function string get_filetype_output (const string filename)
 end function
 
 
-function string multiplot (const strings input_data "Filennames or gnuplot commands",
+function string multiplot (const strings input_data "Filenames or gnuplot commands",
                            string file_output[null] "Filename of compiled plot (optional)",
                            int n_rows[0::0] "Number of rows in plot grid",
                            int n_cols[0::0] "Number of cols in plot grid",
