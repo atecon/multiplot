@@ -67,7 +67,7 @@ function void test_get_default_parameters (void)
     assert(nelem(B) == 4)
     assert(B.PLOT_WIDTH == 800)
     assert(B.PLOT_HEIGHT == 600)
-    assert(B.FONT_SIZE == 12)
+    assert(B.FONT_SIZE == 10)
     assert(B.file_output == "")
 end function
 test_get_default_parameters()
@@ -256,6 +256,7 @@ end function
 test_get_filetype_output(Params)
 
 
+*** Add test for check_parameter_values() here **
 
 printf "\n\nAll tests succesfully passed.\n"
 quit

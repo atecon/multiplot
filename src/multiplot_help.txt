@@ -37,7 +37,7 @@ and their default values are:
 
 PLOT_WIDTH:         Width of the plot. Default: 800 (pixels)
 PLOT_HEIGHT:        Height of the plot. Default: 600 (pixels)
-FONT_SIZE:          Font size. Default: 12 pt
+FONT_SIZE:          Font size. Default: 10 pt
 only_input_files:   Boolean switch which should be set to TRUE if argument
                     input_data only contains filenames and no gnuplot command
                     strings, otherwise FALSE. (Optional; if absent, an automatic
@@ -51,6 +51,7 @@ Changelog:
       array instead of the names of temporary files.
     + Require gretl 2021a because of modern internal bundle syntax.
     + Various small other edits
+    + Set new default font size to 10 pt
 - v0.2, August 2020:
     + Bug fix: "display" mode did not work as no terminal was set in this case.
     + Bug fix: Missing argument for sprintf() function call in case no

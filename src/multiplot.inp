@@ -45,8 +45,25 @@ function bundle get_default_parameters (void)
     return defbundle(
                      "PLOT_WIDTH", 800,
                      "PLOT_HEIGHT", 600,
-                     "FONT_SIZE", 12,
+                     "FONT_SIZE", 10,
                      "file_output", "")
+end function
+
+
+function bundle check_parameter_values (bundle *self)
+    /* Check some of the passed parameter values for validity. */
+
+
+    bundle Btmp =  get_default_parameters()
+    strings keys = getkeys(Btmp)
+
+    loop foreach i keys
+        if self["$i"] < 0
+            self["$i"] = Btmp["i"]
+            printf "\nWARNING: Parameter '%s' is negative. Set to %d.",\
+                "$i", Btmp["i"]
+        endif
+    endloop
 end function
 
 
