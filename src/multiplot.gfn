@@ -23,7 +23,10 @@ Function:       multiplot(const strings input_data, const string file_output,
 Arguments:
 input_data:     strings - Array of filenames each referring to a gnuplot file;
                 or alternatively array of gnuplot command text strings. One
-                cannot mix filenames and buffers, though!
+                cannot mix filenames and buffers, though! In case you need to
+                mix gnuplot input from files and from string buffers, simply use
+                the native readfile() function to load file contents into a
+                string variable.
 file_output:    string - Full output file path for storing compiled plot
                 (optional, default null implies &quot;display&quot;)
 n_rows:         int - Number of rows of the multiplot grid (optional; if 0 or
