@@ -3,7 +3,7 @@
 <gretl-function-package name="multiplot" no-data-ok="true" minver="2021a">
 <author email="atecon@posteo.de">Sven Schreiber and Artur Tarassow</author>
 <version>0.3</version>
-<date>2023-01-20</date>
+<date>2023-01-27</date>
 <description>Combine multiple plots to a single graph</description>
 <tags>C88</tags>
 <help>
@@ -22,7 +22,11 @@ Function:       multiplot(const strings input_data, const string file_output,
                 int n_rows, int n_cols, bundle options)
 Arguments:
 input_data:     strings - Array of filenames each referring to a gnuplot file;
-                or alternatively array of gnuplot command text strings
+                or alternatively array of gnuplot command text strings. One
+                cannot mix filenames and buffers, though! In case you need to
+                mix gnuplot input from files and from string buffers,
+                simply use the native readfile() function to load file contents
+                into a string variable.
 file_output:    string - Full output file path for storing compiled plot
                 (optional, default null implies &quot;display&quot;)
 n_rows:         int - Number of rows of the multiplot grid (optional; if 0 or
@@ -46,7 +50,7 @@ and their default values are:
 
 PLOT_WIDTH:         Width of the plot. Default: 800 (pixels)
 PLOT_HEIGHT:        Height of the plot. Default: 600 (pixels)
-FONT_SIZE:          Font size. Default: 12 pt
+FONT_SIZE:          Font size. Default: 10 pt
 only_input_files:   Boolean switch which should be set to TRUE if argument
                     input_data only contains filenames and no gnuplot command
                     strings, otherwise FALSE. (Optional; if absent, an automatic
@@ -60,6 +64,8 @@ Changelog:
       array instead of the names of temporary files.
     + Require gretl 2021a because of modern internal bundle syntax.
     + Various small other edits
+    + Set new default font size to 10 pt
+    + Add mechanism for checking validity of parameter values
 - v0.2, August 2020:
     + Bug fix: &quot;display&quot; mode did not work as no terminal was set in this case.
     + Bug fix: Missing argument for sprintf() function call in case no
@@ -156,7 +162,31 @@ endif
 </gretl-function>
 <gretl-function name="get_default_parameters" type="bundle" private="1">
 <code>/* Set default plotting parameters here. */
-return defbundle( &quot;PLOT_WIDTH&quot;, 800, &quot;PLOT_HEIGHT&quot;, 600, &quot;FONT_SIZE&quot;, 12, &quot;file_output&quot;, &quot;&quot;)
+return defbundle( &quot;PLOT_WIDTH&quot;, 800, &quot;PLOT_HEIGHT&quot;, 600, &quot;FONT_SIZE&quot;, 10, &quot;file_output&quot;, &quot;&quot;)
+</code>
+</gretl-function>
+<gretl-function name="check_parameter_values" type="void" private="1">
+ <params count="1">
+  <param name="self" type="bundleref"/>
+ </params>
+<code>/* Check some of the passed parameter values for validity. */
+strings keys = getkeys(self)
+strings keys_positive = defarray(&quot;PLOT_WIDTH&quot;, &quot;PLOT_HEIGHT&quot;, &quot;FONT_SIZE&quot;)
+strings keys_negative = array(0)
+bundle DefaultValues = get_default_parameters()
+loop foreach i keys
+  if inbundle(DefaultValues, &quot;$i&quot;)
+    if instrings(keys_positive, &quot;$i&quot;) &amp;&amp; self[&quot;$i&quot;] &lt;= 0
+      self[&quot;$i&quot;] = DefaultValues[&quot;$i&quot;]
+      printf &quot;\nWARNING: Parameter '%s' is negative. Set to %2.f.&quot;, &quot;$i&quot;, DefaultValues[&quot;$i&quot;]
+      /*
+    elif instrings(keys_negative, &quot;$i&quot;) &amp;&amp; self[&quot;$i&quot;] &gt;= 0
+      self[&quot;$i&quot;] = DefaultValues[&quot;$i&quot;]
+      printf &quot;\nWARNING: Parameter '%s' is positive. Set to %2.f.&quot;, &quot;$i&quot;, DefaultValues[&quot;$i&quot;]
+      */
+    endif
+  endif
+endloop
 </code>
 </gretl-function>
 <gretl-function name="write_terminal_and_mplot_dims" type="void" private="1">

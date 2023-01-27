@@ -67,7 +67,7 @@ function void test_get_default_parameters (void)
     assert(nelem(B) == 4)
     assert(B.PLOT_WIDTH == 800)
     assert(B.PLOT_HEIGHT == 600)
-    assert(B.FONT_SIZE == 12)
+    assert(B.FONT_SIZE == 10)
     assert(B.file_output == "")
 end function
 test_get_default_parameters()
@@ -255,6 +255,32 @@ function void test_get_filetype_output (const bundles P)
 end function
 test_get_filetype_output(Params)
 
+
+
+bundles Params = null
+Params = Params + _(PLOT_WIDTH = 800, expected = 800)
+Params = Params + _(PLOT_WIDTH = -800, expected = 800)
+Params = Params + _(PLOT_HEIGHT = 800, expected = 800)
+Params = Params + _(PLOT_HEIGHT = -800, expected = 600)
+Params = Params + _(FONT_SIZE = 12, expected = 12)
+Params = Params + _(FONT_SIZE = -12, expected = 10)
+
+function void test_check_parameter_values (const bundles P)
+    print "Start testing function check_parameter_values()."
+
+    loop foreach i P
+        # Given
+        string keyname = getkeys(P[i])[1]  # only a single key expected
+        bundle actual = P[i]
+
+        # When
+        check_parameter_values(&actual)
+
+        # Then
+        assert(actual[keyname] == P[i].expected)
+    endloop
+end function
+test_check_parameter_values(Params)
 
 
 printf "\n\nAll tests succesfully passed.\n"
