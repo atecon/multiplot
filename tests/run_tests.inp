@@ -256,7 +256,32 @@ end function
 test_get_filetype_output(Params)
 
 
-*** Add test for check_parameter_values() here **
+
+bundles Params = null
+Params = Params + _(PLOT_WIDTH = 800, expected = 800)
+Params = Params + _(PLOT_WIDTH = -800, expected = 800)
+Params = Params + _(PLOT_HEIGHT = 800, expected = 800)
+Params = Params + _(PLOT_HEIGHT = -800, expected = 600)
+Params = Params + _(FONT_SIZE = 12, expected = 12)
+Params = Params + _(FONT_SIZE = -12, expected = 10)
+
+function void test_check_parameter_values (const bundles P)
+    print "Start testing function check_parameter_values()."
+
+    loop foreach i P
+        # Given
+        string keyname = getkeys(P[i])[1]  # only a single key expected
+        bundle actual = P[i]
+
+        # When
+        check_parameter_values(&actual)
+
+        # Then
+        assert(actual[keyname] == P[i].expected)
+    endloop
+end function
+test_check_parameter_values(Params)
+
 
 printf "\n\nAll tests succesfully passed.\n"
 quit

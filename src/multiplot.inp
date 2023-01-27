@@ -50,18 +50,27 @@ function bundle get_default_parameters (void)
 end function
 
 
-function bundle check_parameter_values (bundle *self)
+function void check_parameter_values (bundle *self)
     /* Check some of the passed parameter values for validity. */
 
-
-    bundle Btmp =  get_default_parameters()
-    strings keys = getkeys(Btmp)
+    strings keys = getkeys(self)
+    strings keys_positive = defarray("PLOT_WIDTH", "PLOT_HEIGHT", "FONT_SIZE")
+    strings keys_negative = array(0)
+    bundle DefaultValues = get_default_parameters()
 
     loop foreach i keys
-        if self["$i"] < 0
-            self["$i"] = Btmp["i"]
-            printf "\nWARNING: Parameter '%s' is negative. Set to %d.",\
-                "$i", Btmp["i"]
+        if inbundle(DefaultValues, "$i")
+            if instrings(keys_positive, "$i") && self["$i"] <= 0
+                self["$i"] = DefaultValues["$i"]
+                printf "\nWARNING: Parameter '%s' is negative. Set to %2.f.",\
+                    "$i", DefaultValues["$i"]
+            /*
+            elif instrings(keys_negative, "$i") && self["$i"] >= 0
+                self["$i"] = DefaultValues["$i"]
+                printf "\nWARNING: Parameter '%s' is positive. Set to %2.f.",\
+                    "$i", DefaultValues["$i"]
+            */
+            endif
         endif
     endloop
 end function
