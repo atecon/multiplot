@@ -66,6 +66,14 @@ The user can pass an optional bundle (```options```) as the fifth argument for f
 - ```FONT_SIZE```: 12
 
 # Changelog:
+Changelog:
+- v0.3, January 2023: 
+    + Accept the direct input of gnuplot command file contents in the strings
+      array instead of the names of temporary files.
+    + Require gretl 2021a because of modern internal bundle syntax.
+    + Various small other edits
+    + Set new default font size to 10 pt
+    + Add mechanism for checking validity of parameter values
 - v0.2, August 2020:
     + Bug fix: "display" mode did not work as no terminal was set in this case
     + Bug fix: Missing argument for sprintf() function call in case no
