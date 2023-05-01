@@ -5,6 +5,18 @@ set assert stop
 include "./src/multiplot.inp" --force
 include assertion.gfn
 
+open denmark -q
+bundle options = _(FONT_SIZE=10, PLOT_HEIGHT=700)
+qqplot LRM --output=tf1.gp
+qqplot LRY --output=tf2.gp
+qqplot IBO --output=tf3.gp
+qqplot IDE --output=tf4.gp
+qqplot LRM --output=tf5.gp
+strings filenames = defarray("tf1.gp","tf2.gp","tf3.gp","tf4.gp","tf5.gp")
+Gin = multiplot(filenames, "foo.png", 3, 2, options)
+
+
+
 function void test_set_grid_dimension (void)
     print "Start testing set_grid_dimension()"
 
@@ -55,6 +67,13 @@ function void test_set_grid_dimension (void)
     scalar N = 3
     catch set_grid_dimension(&n_rows, &n_cols, N)
     assert_equal_num(n_rows, 2)
+    assert_equal_num(n_cols, 2)
+
+    scalar n_rows = 3
+    scalar n_cols = 2
+    scalar N = 5
+    set_grid_dimension(&n_rows, &n_cols, N)
+    assert_equal_num(n_rows, 3)
     assert_equal_num(n_cols, 2)
 end function
 test_set_grid_dimension()

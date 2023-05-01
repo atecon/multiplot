@@ -1,12 +1,12 @@
 author = Sven Schreiber and Artur Tarassow
 email = atecon@posteo.de
-version = 0.3
-date = 2023-01-27
+version = 0.4
+date = 2023-05-01
 description = Combine multiple plots to a single graph
 tags = C88
-min-version = 2021a
+min-version = 2023a
 public = multiplot
 data-requirement = no-data-ok
-help = multiplot_help.txt
+help = multiplot_help.md
 sample-script = multiplot_sample.inp
 depends = extra
