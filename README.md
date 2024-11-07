@@ -1,6 +1,9 @@
 # multiplot
 
+**NOTE:** This is the archive for the former contributed function package for gretl which was replaced by the native gridplot feature in gretl in 2023/2024.
+
 This package compiles a multiplot graph comprising multiple sub plots.
+
 
 # Installation and usage
 
